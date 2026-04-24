@@ -1,0 +1,67 @@
+{
+  "version": 2,
+  "dgSpecHash": "X1iQRuXSJdw=",
+  "success": true,
+  "projectFilePath": "D:\\baitap\\C#\\QuanLyNhanSu_WPF\\QuanLyNhanSu_WPF\\QuanLyNhanSu_WPF.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\Admin\\.nuget\\packages\\closedxml\\0.105.0\\closedxml.0.105.0.nupkg.sha512",
+    "C:\\Users\\Admin\\.nuget\\packages\\closedxml.parser\\2.0.0\\closedxml.parser.2.0.0.nupkg.sha512",
+    "C:\\Users\\Admin\\.nuget\\packages\\documentformat.openxml\\3.1.1\\documentformat.openxml.3.1.1.nupkg.sha512",
+    "C:\\Users\\Admin\\.nuget\\packages\\documentformat.openxml.framework\\3.1.1\\documentformat.openxml.framework.3.1.1.nupkg.sha512",
+    "C:\\Users\\Admin\\.nuget\\packages\\excelnumberformat\\1.1.0\\excelnumberformat.1.1.0.nupkg.sha512",
+    "C:\\Users\\Admin\\.nuget\\packages\\livecharts\\0.9.7\\livecharts.0.9.7.nupkg.sha512",
+    "C:\\Users\\Admin\\.nuget\\packages\\livecharts.wpf\\0.9.7\\livecharts.wpf.0.9.7.nupkg.sha512",
+    "C:\\Users\\Admin\\.nuget\\packages\\materialdesigncolors\\5.3.1\\materialdesigncolors.5.3.1.nupkg.sha512",
+    "C:\\Users\\Admin\\.nuget\\packages\\materialdesignthemes\\5.3.1\\materialdesignthemes.5.3.1.nupkg.sha512",
+    "C:\\Users\\Admin\\.nuget\\packages\\microsoft.data.sqlite.core\\9.0.4\\microsoft.data.sqlite.core.9.0.4.nupkg.sha512",
+    "C:\\Users\\Admin\\.nuget\\packages\\microsoft.entityframeworkcore\\9.0.4\\microsoft.entityframeworkcore.9.0.4.nupkg.sha512",
+    "C:\\Users\\Admin\\.nuget\\packages\\microsoft.entityframeworkcore.abstractions\\9.0.4\\microsoft.entityframeworkcore.abstractions.9.0.4.nupkg.sha512",
+    "C:\\Users\\Admin\\.nuget\\packages\\microsoft.entityframeworkcore.analyzers\\9.0.4\\microsoft.entityframeworkcore.analyzers.9.0.4.nupkg.sha512",
+    "C:\\Users\\Admin\\.nuget\\packages\\microsoft.entityframeworkcore.relational\\9.0.4\\microsoft.entityframeworkcore.relational.9.0.4.nupkg.sha512",
+    "C:\\Users\\Admin\\.nuget\\packages\\microsoft.entityframeworkcore.sqlite\\9.0.4\\microsoft.entityframeworkcore.sqlite.9.0.4.nupkg.sha512",
+    "C:\\Users\\Admin\\.nuget\\packages\\microsoft.entityframeworkcore.sqlite.core\\9.0.4\\microsoft.entityframeworkcore.sqlite.core.9.0.4.nupkg.sha512",
+    "C:\\Users\\Admin\\.nuget\\packages\\microsoft.extensions.caching.abstractions\\9.0.4\\microsoft.extensions.caching.abstractions.9.0.4.nupkg.sha512",
+    "C:\\Users\\Admin\\.nuget\\packages\\microsoft.extensions.caching.memory\\9.0.4\\microsoft.extensions.caching.memory.9.0.4.nupkg.sha512",
+    "C:\\Users\\Admin\\.nuget\\packages\\microsoft.extensions.configuration.abstractions\\9.0.4\\microsoft.extensions.configuration.abstractions.9.0.4.nupkg.sha512",
+    "C:\\Users\\Admin\\.nuget\\packages\\microsoft.extensions.dependencyinjection\\9.0.4\\microsoft.extensions.dependencyinjection.9.0.4.nupkg.sha512",
+    "C:\\Users\\Admin\\.nuget\\packages\\microsoft.extensions.dependencyinjection.abstractions\\9.0.4\\microsoft.extensions.dependencyinjection.abstractions.9.0.4.nupkg.sha512",
+    "C:\\Users\\Admin\\.nuget\\packages\\microsoft.extensions.dependencymodel\\9.0.4\\microsoft.extensions.dependencymodel.9.0.4.nupkg.sha512",
+    "C:\\Users\\Admin\\.nuget\\packages\\microsoft.extensions.logging\\9.0.4\\microsoft.extensions.logging.9.0.4.nupkg.sha512",
+    "C:\\Users\\Admin\\.nuget\\packages\\microsoft.extensions.logging.abstractions\\9.0.4\\microsoft.extensions.logging.abstractions.9.0.4.nupkg.sha512",
+    "C:\\Users\\Admin\\.nuget\\packages\\microsoft.extensions.options\\9.0.4\\microsoft.extensions.options.9.0.4.nupkg.sha512",
+    "C:\\Users\\Admin\\.nuget\\packages\\microsoft.extensions.primitives\\9.0.4\\microsoft.extensions.primitives.9.0.4.nupkg.sha512",
+    "C:\\Users\\Admin\\.nuget\\packages\\microsoft.xaml.behaviors.wpf\\1.1.77\\microsoft.xaml.behaviors.wpf.1.1.77.nupkg.sha512",
+    "C:\\Users\\Admin\\.nuget\\packages\\rbush.signed\\4.0.0\\rbush.signed.4.0.0.nupkg.sha512",
+    "C:\\Users\\Admin\\.nuget\\packages\\sixlabors.fonts\\1.0.0\\sixlabors.fonts.1.0.0.nupkg.sha512",
+    "C:\\Users\\Admin\\.nuget\\packages\\sqlitepclraw.bundle_e_sqlite3\\2.1.10\\sqlitepclraw.bundle_e_sqlite3.2.1.10.nupkg.sha512",
+    "C:\\Users\\Admin\\.nuget\\packages\\sqlitepclraw.core\\2.1.10\\sqlitepclraw.core.2.1.10.nupkg.sha512",
+    "C:\\Users\\Admin\\.nuget\\packages\\sqlitepclraw.lib.e_sqlite3\\2.1.10\\sqlitepclraw.lib.e_sqlite3.2.1.10.nupkg.sha512",
+    "C:\\Users\\Admin\\.nuget\\packages\\sqlitepclraw.provider.e_sqlite3\\2.1.10\\sqlitepclraw.provider.e_sqlite3.2.1.10.nupkg.sha512"
+  ],
+  "logs": [
+    {
+      "code": "NU1701",
+      "level": "Warning",
+      "message": "Package 'LiveCharts 0.9.7' was restored using '.NETFramework,Version=v4.6.1, .NETFramework,Version=v4.6.2, .NETFramework,Version=v4.7, .NETFramework,Version=v4.7.1, .NETFramework,Version=v4.7.2, .NETFramework,Version=v4.8, .NETFramework,Version=v4.8.1' instead of the project target framework 'net10.0-windows7.0'. This package may not be fully compatible with your project.",
+      "projectPath": "D:\\baitap\\C#\\QuanLyNhanSu_WPF\\QuanLyNhanSu_WPF\\QuanLyNhanSu_WPF.csproj",
+      "warningLevel": 1,
+      "filePath": "D:\\baitap\\C#\\QuanLyNhanSu_WPF\\QuanLyNhanSu_WPF\\QuanLyNhanSu_WPF.csproj",
+      "libraryId": "LiveCharts",
+      "targetGraphs": [
+        "net10.0-windows"
+      ]
+    },
+    {
+      "code": "NU1701",
+      "level": "Warning",
+      "message": "Package 'LiveCharts.Wpf 0.9.7' was restored using '.NETFramework,Version=v4.6.1, .NETFramework,Version=v4.6.2, .NETFramework,Version=v4.7, .NETFramework,Version=v4.7.1, .NETFramework,Version=v4.7.2, .NETFramework,Version=v4.8, .NETFramework,Version=v4.8.1' instead of the project target framework 'net10.0-windows7.0'. This package may not be fully compatible with your project.",
+      "projectPath": "D:\\baitap\\C#\\QuanLyNhanSu_WPF\\QuanLyNhanSu_WPF\\QuanLyNhanSu_WPF.csproj",
+      "warningLevel": 1,
+      "filePath": "D:\\baitap\\C#\\QuanLyNhanSu_WPF\\QuanLyNhanSu_WPF\\QuanLyNhanSu_WPF.csproj",
+      "libraryId": "LiveCharts.Wpf",
+      "targetGraphs": [
+        "net10.0-windows"
+      ]
+    }
+  ]
+}

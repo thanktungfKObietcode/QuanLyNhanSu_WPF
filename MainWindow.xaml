@@ -1,0 +1,105 @@
+<Window x:Class="QuanLyNhanSu_WPF.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+        xmlns:local="clr-namespace:QuanLyNhanSu_WPF"
+        xmlns:vm="clr-namespace:QuanLyNhanSu_WPF.ViewModels"
+        xmlns:views="clr-namespace:QuanLyNhanSu_WPF.Views"
+        mc:Ignorable="d"
+        Title="Quản Lý Nhân Sự" Height="700" Width="1200"
+        WindowStartupLocation="CenterScreen"
+        Background="{DynamicResource MaterialDesignPaper}">
+
+    <Window.Resources>
+        <DataTemplate DataType="{x:Type vm:AdminDashboardViewModel}">
+            <views:AdminDashboard/>
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:EmployeeDashboardViewModel}">
+            <views:EmployeeDashboard/>
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:EmployeeManagementViewModel}">
+            <views:EmployeeManagementView/>
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:DepartmentPositionViewModel}">
+            <views:DepartmentPositionView/>
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:AttendanceViewModel}">
+            <views:AttendanceView/>
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:LeaveRequestViewModel}">
+            <views:LeaveRequestView/>
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:SalaryViewModel}">
+            <views:SalaryView/>
+        </DataTemplate>
+
+        <Style x:Key="SidebarItemStyle" TargetType="ListBoxItem" BasedOn="{StaticResource MaterialDesignListBoxItem}">
+            <Setter Property="Padding" Value="16,12"/>
+            <Setter Property="Margin" Value="8,2"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="materialDesign:ListBoxItemAssist.CornerRadius" Value="8"/>
+        </Style>
+    </Window.Resources>
+
+    <DockPanel>
+        <!-- Top Bar -->
+        <Border DockPanel.Dock="Top" Height="64" Background="White" materialDesign:ElevationAssist.Elevation="Dp4">
+            <DockPanel>
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="24,0,0,0">
+                    <materialDesign:PackIcon Kind="AccountTie" Width="36" Height="36" Foreground="{DynamicResource PrimaryHueMidBrush}"/>
+                    <TextBlock Text="HR MASTER" Foreground="{DynamicResource PrimaryHueMidBrush}" FontSize="22" FontWeight="Black" VerticalAlignment="Center" Margin="12,0,0,0"/>
+                </StackPanel>
+                
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,24,0">
+                    <StackPanel VerticalAlignment="Center" Margin="0,0,16,0" HorizontalAlignment="Right">
+                        <TextBlock Text="{Binding DisplayName}" FontWeight="Bold" FontSize="14" HorizontalAlignment="Right"/>
+                        <TextBlock Text="{Binding DisplayRole}" Opacity="0.6" FontSize="11" HorizontalAlignment="Right"/>
+                    </StackPanel>
+                    
+                    <materialDesign:PopupBox PlacementMode="BottomAndAlignRightEdges" UnfurlOrientation="Vertical"
+                                             ToolTip="Tài khoản" Cursor="Hand">
+                        <materialDesign:PopupBox.ToggleContent>
+                            <Ellipse Width="40" Height="40">
+                                <Ellipse.Fill>
+                                    <ImageBrush ImageSource="{Binding Photo}"/>
+                                </Ellipse.Fill>
+                            </Ellipse>
+                        </materialDesign:PopupBox.ToggleContent>
+                        <StackPanel Width="150">
+                            <Button Content="Hồ sơ" Padding="16,8"/>
+                            <Button Content="Cài đặt" Padding="16,8"/>
+                            <Separator/>
+                            <Button Content="Đăng xuất" Command="{Binding LogoutCommand}" Padding="16,8" Foreground="Red"/>
+                        </StackPanel>
+                    </materialDesign:PopupBox>
+                </StackPanel>
+            </DockPanel>
+        </Border>
+        <!-- Sidebar Menu -->
+        <Border DockPanel.Dock="Left" Width="260" Background="#F5F5F7" BorderBrush="#E0E0E0" BorderThickness="0,0,1,0">
+            <ListBox ItemsSource="{Binding MenuItems}" 
+                     SelectedItem="{Binding SelectedMenuItem}" 
+                     ItemContainerStyle="{StaticResource SidebarItemStyle}"
+                     BorderThickness="0" Background="Transparent"
+                     Margin="0,16">
+                <ListBox.ItemTemplate>
+                    <DataTemplate>
+                        <StackPanel Orientation="Horizontal" Height="24">
+                            <materialDesign:PackIcon Kind="{Binding Icon}" Width="22" Height="22" VerticalAlignment="Center" Opacity="0.8"/>
+                            <TextBlock Text="{Binding Title}" Margin="16,0,0,0" VerticalAlignment="Center" FontSize="14" FontWeight="Medium"/>
+                        </StackPanel>
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+            </ListBox>
+        </Border>
+
+        <!-- Main Content Area -->
+        <materialDesign:Transitioner SelectedIndex="0">
+            <materialDesign:TransitionerSlide>
+                <ContentControl Content="{Binding CurrentViewModel}" Margin="0"/>
+            </materialDesign:TransitionerSlide>
+        </materialDesign:Transitioner>
+    </DockPanel>
+</Window>

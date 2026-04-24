@@ -1,0 +1,108 @@
+<UserControl x:Class="QuanLyNhanSu_WPF.Views.AttendanceView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+             xmlns:helpers="clr-namespace:QuanLyNhanSu_WPF.Helpers">
+    <UserControl.Resources>
+        <helpers:BoolToVisibilityConverter x:Key="BoolToVis"/>
+        <helpers:InverseBoolToVisibilityConverter x:Key="InvBoolToVis"/>
+    </UserControl.Resources>
+
+    <Grid Margin="24">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- Page Header -->
+        <DockPanel Grid.Row="0" Margin="0,0,0,24">
+            <StackPanel>
+                <TextBlock Text="Quản Lý Chấm Công" FontSize="26" FontWeight="Bold" Foreground="{DynamicResource PrimaryHueDarkBrush}"/>
+                <TextBlock Text="Theo dõi và quản lý thời gian làm việc của nhân sự" Opacity="0.6" FontSize="13"/>
+            </StackPanel>
+        </DockPanel>
+
+        <!-- Filters and Admin Controls -->
+        <materialDesign:Card Grid.Row="1" Padding="20" Margin="0,0,0,24" materialDesign:ElevationAssist.Elevation="Dp2">
+            <StackPanel>
+                <DockPanel LastChildFill="False">
+                    <StackPanel Orientation="Horizontal" DockPanel.Dock="Left">
+                        <DatePicker materialDesign:HintAssist.Hint="Từ ngày" Style="{StaticResource MaterialDesignFloatingHintDatePicker}"
+                                    SelectedDate="{Binding FromDate}" Width="150" Margin="0,0,16,0"/>
+                        <DatePicker materialDesign:HintAssist.Hint="Đến ngày" Style="{StaticResource MaterialDesignFloatingHintDatePicker}"
+                                    SelectedDate="{Binding ToDate}" Width="150" Margin="0,0,16,0"/>
+                        
+                        <ComboBox materialDesign:HintAssist.Hint="Nhân viên (Admin)" 
+                                  Visibility="{Binding IsAdmin, Converter={StaticResource BoolToVis}}"
+                                  Style="{StaticResource MaterialDesignFloatingHintComboBox}"
+                                  ItemsSource="{Binding Employees}" DisplayMemberPath="Name"
+                                  SelectedItem="{Binding SelectedEmployee}" Width="200" Margin="0,0,16,0"/>
+                        
+                        <Button Command="{Binding FilterCommand}" Style="{StaticResource MaterialDesignFlatButton}"
+                                Content="LỌC DỮ LIỆU" VerticalAlignment="Bottom"/>
+                    </StackPanel>
+                </DockPanel>
+
+                <!-- Mark Attendance Form (Admin Only) -->
+                <GroupBox Header="Chấm công thủ công" Margin="0,16,0,0" 
+                          Visibility="{Binding IsAdmin, Converter={StaticResource BoolToVis}}">
+                    <StackPanel Orientation="Horizontal">
+                        <DatePicker SelectedDate="{Binding MarkDate}" Width="120" Margin="0,0,16,0"/>
+                        <TextBox materialDesign:HintAssist.Hint="Giờ vào" Text="{Binding MarkCheckIn}" Width="80" Margin="0,0,16,0"/>
+                        <TextBox materialDesign:HintAssist.Hint="Giờ ra" Text="{Binding MarkCheckOut}" Width="80" Margin="0,0,16,0"/>
+                        <ComboBox ItemsSource="{Binding StatusOptions}" SelectedItem="{Binding MarkStatus}" Width="100" Margin="0,0,16,0"/>
+                        <Button Command="{Binding MarkAttendanceCommand}" Content="XÁC NHẬN" Style="{StaticResource MaterialDesignRaisedButton}"/>
+                    </StackPanel>
+                </GroupBox>
+            </StackPanel>
+        </materialDesign:Card>
+
+        <!-- Attendance List -->
+        <materialDesign:Card Grid.Row="1" materialDesign:ElevationAssist.Elevation="Dp1">
+            <Grid>
+                <DataGrid ItemsSource="{Binding Records}" AutoGenerateColumns="False" IsReadOnly="True"
+                          materialDesign:DataGridAssist.CellPadding="13 8 8 8"
+                          materialDesign:DataGridAssist.ColumnHeaderPadding="8">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="Ngày" Binding="{Binding Date, StringFormat=dd/MM/yyyy}" Width="100"/>
+                        <DataGridTextColumn Header="Nhân viên" Binding="{Binding Employee.Name}" Width="180" 
+                                            Visibility="{Binding DataContext.IsAdmin, RelativeSource={RelativeSource AncestorType=UserControl}, Converter={StaticResource BoolToVis}}"/>
+                        <DataGridTextColumn Header="Giờ vào" Binding="{Binding CheckIn, StringFormat=\{0:hh\\:mm\}}" Width="100"/>
+                        <DataGridTextColumn Header="Giờ ra" Binding="{Binding CheckOut, StringFormat=\{0:hh\\:mm\}}" Width="100"/>
+                        <DataGridTemplateColumn Header="Trạng thái" Width="120">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <Border CornerRadius="4" Padding="4,2" HorizontalAlignment="Left">
+                                        <Border.Style>
+                                            <Style TargetType="Border">
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding Status}" Value="Present">
+                                                        <Setter Property="Background" Value="#E8F5E9"/><Setter Property="Tag" Value="#2E7D32"/>
+                                                    </DataTrigger>
+                                                    <DataTrigger Binding="{Binding Status}" Value="Late">
+                                                        <Setter Property="Background" Value="#FFF3E0"/><Setter Property="Tag" Value="#EF6C00"/>
+                                                    </DataTrigger>
+                                                    <DataTrigger Binding="{Binding Status}" Value="Absent">
+                                                        <Setter Property="Background" Value="#FFEBEE"/><Setter Property="Tag" Value="#C62828"/>
+                                                    </DataTrigger>
+                                                    <DataTrigger Binding="{Binding Status}" Value="OnLeave">
+                                                        <Setter Property="Background" Value="#E3F2FD"/><Setter Property="Tag" Value="#1565C0"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Border.Style>
+                                        <TextBlock Text="{Binding Status}" Foreground="{Binding RelativeSource={RelativeSource AncestorType=Border}, Path=Tag}" FontWeight="Bold"/>
+                                    </Border>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                        <DataGridTextColumn Header="Ghi chú" Binding="{Binding Note}" Width="*"/>
+                    </DataGrid.Columns>
+                </DataGrid>
+                <ProgressBar IsIndeterminate="True" Visibility="{Binding IsLoading, Converter={StaticResource BoolToVis}}" 
+                             VerticalAlignment="Top" Style="{StaticResource MaterialDesignLinearProgressBar}"/>
+            </Grid>
+        </materialDesign:Card>
+    </Grid>
+</UserControl>

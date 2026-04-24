@@ -1,0 +1,85 @@
+<UserControl x:Class="QuanLyNhanSu_WPF.Views.DepartmentPositionView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+             xmlns:helpers="clr-namespace:QuanLyNhanSu_WPF.Helpers">
+    <UserControl.Resources>
+        <helpers:BoolToVisibilityConverter x:Key="BoolToVis"/>
+    </UserControl.Resources>
+
+    <Grid Margin="16">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <DockPanel Margin="0,0,0,16">
+            <StackPanel Orientation="Horizontal">
+                <materialDesign:PackIcon Kind="OfficeBuilding" Width="32" Height="32" Foreground="{DynamicResource PrimaryHueMidBrush}" VerticalAlignment="Center"/>
+                <TextBlock Text="Quản Lý Phòng Ban &amp; Chức Vụ" FontSize="24" FontWeight="Bold" Margin="8,0,0,0" VerticalAlignment="Center" Foreground="{DynamicResource PrimaryHueDarkBrush}"/>
+            </StackPanel>
+            
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                <Button Content="💾 LƯU THAY ĐỔI" Style="{StaticResource MaterialDesignRaisedButton}" Click="BtnSave_Click" Margin="0,0,8,0"/>
+                <Button Content="🔄 LÀM MỚI" Command="{Binding LoadCommand}" Style="{StaticResource MaterialDesignOutlinedButton}"/>
+            </StackPanel>
+        </DockPanel>
+
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="16"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- Departments -->
+            <materialDesign:Card Grid.Column="0" materialDesign:ElevationAssist.Elevation="Dp2" Padding="16">
+                <DockPanel>
+                    <DockPanel DockPanel.Dock="Top" Margin="0,0,0,16">
+                        <TextBlock Text="Danh Sách Phòng Ban" FontSize="18" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                            <Button Command="{Binding AddDepartmentCommand}" Style="{StaticResource MaterialDesignFlatButton}" ToolTip="Thêm phòng ban">
+                                <materialDesign:PackIcon Kind="Plus"/>
+                            </Button>
+                            <Button Command="{Binding DeleteDepartmentCommand}" Style="{StaticResource MaterialDesignFlatButton}" ToolTip="Xóa phòng ban" Foreground="Red">
+                                <materialDesign:PackIcon Kind="Delete"/>
+                            </Button>
+                        </StackPanel>
+                    </DockPanel>
+                    <DataGrid ItemsSource="{Binding Departments}" SelectedItem="{Binding SelectedDepartment}" AutoGenerateColumns="False" CanUserAddRows="False" Style="{StaticResource MaterialDesignDataGrid}">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Mã PB" Binding="{Binding DeptCode}" Width="100"/>
+                            <DataGridTextColumn Header="Tên Phòng Ban" Binding="{Binding DeptName}" Width="*"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </DockPanel>
+            </materialDesign:Card>
+
+            <!-- Positions -->
+            <materialDesign:Card Grid.Column="2" materialDesign:ElevationAssist.Elevation="Dp2" Padding="16">
+                <DockPanel>
+                    <DockPanel DockPanel.Dock="Top" Margin="0,0,0,16">
+                        <TextBlock Text="Danh Sách Chức Vụ" FontSize="18" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                            <Button Command="{Binding AddPositionCommand}" Style="{StaticResource MaterialDesignFlatButton}" ToolTip="Thêm chức vụ">
+                                <materialDesign:PackIcon Kind="Plus"/>
+                            </Button>
+                            <Button Command="{Binding DeletePositionCommand}" Style="{StaticResource MaterialDesignFlatButton}" ToolTip="Xóa chức vụ" Foreground="Red">
+                                <materialDesign:PackIcon Kind="Delete"/>
+                            </Button>
+                        </StackPanel>
+                    </DockPanel>
+                    <DataGrid ItemsSource="{Binding Positions}" SelectedItem="{Binding SelectedPosition}" AutoGenerateColumns="False" CanUserAddRows="False" Style="{StaticResource MaterialDesignDataGrid}">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Mã CV" Binding="{Binding PosCode}" Width="80"/>
+                            <DataGridTextColumn Header="Tên Chức Vụ" Binding="{Binding PosName}" Width="*"/>
+                            <DataGridTextColumn Header="Lương Cơ Bản" Binding="{Binding BaseSalary, StringFormat=N0}" Width="120"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </DockPanel>
+            </materialDesign:Card>
+        </Grid>
+
+        <ProgressBar IsIndeterminate="True" Visibility="{Binding IsLoading, Converter={StaticResource BoolToVis}}" VerticalAlignment="Top" Grid.RowSpan="2"/>
+    </Grid>
+</UserControl>
