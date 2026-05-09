@@ -43,97 +43,55 @@
                 <UniformGrid Columns="4" Margin="0,0,0,16">
 
                     <!-- Total Employees -->
-                    <materialDesign:Card Margin="8" Padding="0" Cursor="Hand"
-                                         MouseLeftButtonUp="TotalEmployeesCard_Click"
-                                         materialDesign:ElevationAssist.Elevation="Dp3">
-                        <Border CornerRadius="12">
-                            <Border.Background>
-                                <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                                    <GradientStop Color="#6366F1" Offset="0"/>
-                                    <GradientStop Color="#4F46E5" Offset="1"/>
-                                </LinearGradientBrush>
-                            </Border.Background>
-                            <Grid Margin="24,20">
-                                <StackPanel VerticalAlignment="Center">
-                                    <TextBlock Text="TỔNG NHÂN VIÊN" FontSize="11" FontWeight="Black" Foreground="#CCFFFFFF"/>
-                                    <TextBlock Text="{Binding TotalEmployees}" FontSize="36" FontWeight="Black" Foreground="White" Margin="0,4"/>
-                                    <TextBlock Text="Nhân viên chính thức" FontSize="12" Foreground="#AAFFFFFF"/>
-                                </StackPanel>
-                                <materialDesign:PackIcon Kind="AccountGroup" HorizontalAlignment="Right" VerticalAlignment="Top"
-                                     Width="32" Height="32" Foreground="#44FFFFFF" Opacity="0.5"/>
-                            </Grid>
-                        </Border>
+                    <materialDesign:Card Margin="8" Style="{StaticResource ModernCard}" Background="#F5F3FF">
+                        <Grid>
+                            <StackPanel>
+                                <TextBlock Text="TỔNG NHÂN VIÊN" FontSize="11" FontWeight="Black" Foreground="#4F46E5"/>
+                                <TextBlock Text="{Binding TotalEmployees}" FontSize="32" FontWeight="Black" Foreground="#1E1B4B" Margin="0,4"/>
+                                <TextBlock Text="Nhân viên chính thức" FontSize="12" Foreground="#6366F1"/>
+                            </StackPanel>
+                            <materialDesign:PackIcon Kind="AccountGroup" HorizontalAlignment="Right" VerticalAlignment="Top"
+                                 Width="28" Height="28" Foreground="#4F46E5" Opacity="0.1"/>
+                        </Grid>
                     </materialDesign:Card>
 
                     <!-- Departments -->
-                    <materialDesign:Card Margin="8" Padding="0" Cursor="Hand"
-                                         MouseLeftButtonUp="TotalDepartmentsCard_Click"
-                                         materialDesign:ElevationAssist.Elevation="Dp3">
-                        <Border CornerRadius="12">
-                            <Border.Background>
-                                <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                                    <GradientStop Color="#10B981" Offset="0"/>
-                                    <GradientStop Color="#059669" Offset="1"/>
-                                </LinearGradientBrush>
-                            </Border.Background>
-                            <Grid Margin="24,20">
-                                <StackPanel VerticalAlignment="Center">
-                                    <TextBlock Text="PHÒNG BAN" FontSize="11" FontWeight="Black" Foreground="#CCFFFFFF"/>
-                                    <TextBlock Text="{Binding TotalDepartments}" FontSize="36" FontWeight="Black" Foreground="White" Margin="0,4"/>
-                                    <TextBlock Text="Đã thiết lập" FontSize="12" Foreground="#AAFFFFFF"/>
-                                </StackPanel>
-                                <materialDesign:PackIcon Kind="OfficeBuilding" HorizontalAlignment="Right" VerticalAlignment="Top"
-                                     Width="32" Height="32" Foreground="#44FFFFFF" Opacity="0.5"/>
-                            </Grid>
-                        </Border>
+                    <materialDesign:Card Margin="8" Style="{StaticResource ModernCard}" Background="#F0FDF4">
+                        <Grid>
+                            <StackPanel>
+                                <TextBlock Text="PHÒNG BAN" FontSize="11" FontWeight="Black" Foreground="#059669"/>
+                                <TextBlock Text="{Binding TotalDepartments}" FontSize="32" FontWeight="Black" Foreground="#064E3B" Margin="0,4"/>
+                                <TextBlock Text="Đã thiết lập" FontSize="12" Foreground="#10B981"/>
+                            </StackPanel>
+                            <materialDesign:PackIcon Kind="OfficeBuilding" HorizontalAlignment="Right" VerticalAlignment="Top"
+                                 Width="28" Height="28" Foreground="#10B981" Opacity="0.1"/>
+                        </Grid>
                     </materialDesign:Card>
 
                     <!-- Pending Leaves -->
-                    <!-- Pending Leaves -->
-                    <materialDesign:Card Margin="8" Padding="0" Cursor="Hand"
-                                         MouseLeftButtonUp="PendingLeaveCard_Click"
-                                         materialDesign:ElevationAssist.Elevation="Dp3">
-                        <Border CornerRadius="12">
-                            <Border.Background>
-                                <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                                    <GradientStop Color="#F59E0B" Offset="0"/>
-                                    <GradientStop Color="#D97706" Offset="1"/>
-                                </LinearGradientBrush>
-                            </Border.Background>
-                            <Grid Margin="24,20">
-                                <StackPanel VerticalAlignment="Center">
-                                    <TextBlock Text="ĐƠN NGHỈ PHÉP" FontSize="11" FontWeight="Black" Foreground="#CCFFFFFF"/>
-                                    <TextBlock Text="{Binding PendingLeaveRequests}" FontSize="36" FontWeight="Black" Foreground="White" Margin="0,4"/>
-                                    <TextBlock Text="Chờ phê duyệt" FontSize="12" Foreground="#AAFFFFFF"/>
-                                </StackPanel>
-                                <materialDesign:PackIcon Kind="ClipboardClock" HorizontalAlignment="Right" VerticalAlignment="Top"
-                                     Width="32" Height="32" Foreground="#44FFFFFF" Opacity="0.5"/>
-                            </Grid>
-                        </Border>
+                    <materialDesign:Card Margin="8" Style="{StaticResource ModernCard}" Background="#FFFBEB">
+                        <Grid>
+                            <StackPanel>
+                                <TextBlock Text="ĐƠN NGHỈ PHÉP" FontSize="11" FontWeight="Black" Foreground="#D97706"/>
+                                <TextBlock Text="{Binding PendingLeaveRequests}" FontSize="32" FontWeight="Black" Foreground="#78350F" Margin="0,4"/>
+                                <TextBlock Text="Chờ phê duyệt" FontSize="12" Foreground="#F59E0B"/>
+                            </StackPanel>
+                            <materialDesign:PackIcon Kind="ClipboardClock" HorizontalAlignment="Right" VerticalAlignment="Top"
+                                 Width="28" Height="28" Foreground="#F59E0B" Opacity="0.1"/>
+                        </Grid>
                     </materialDesign:Card>
 
                     <!-- Attendance Rate -->
-                    <!-- Attendance Rate -->
-                    <materialDesign:Card Margin="8" Padding="0" Cursor="Hand"
-                                         MouseLeftButtonUp="AttendanceCard_Click"
-                                         materialDesign:ElevationAssist.Elevation="Dp3">
-                        <Border CornerRadius="12">
-                            <Border.Background>
-                                <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                                    <GradientStop Color="#EC4899" Offset="0"/>
-                                    <GradientStop Color="#DB2777" Offset="1"/>
-                                </LinearGradientBrush>
-                            </Border.Background>
-                            <Grid Margin="24,20">
-                                <StackPanel VerticalAlignment="Center">
-                                    <TextBlock Text="CHUYÊN CẦN" FontSize="11" FontWeight="Black" Foreground="#CCFFFFFF"/>
-                                    <TextBlock Text="{Binding MonthlyAttendanceRate, StringFormat={}{0:F1}%}" FontSize="36" FontWeight="Black" Foreground="White" Margin="0,4"/>
-                                    <TextBlock Text="Tháng hiện tại" FontSize="12" Foreground="#AAFFFFFF"/>
-                                </StackPanel>
-                                <materialDesign:PackIcon Kind="CheckCircle" HorizontalAlignment="Right" VerticalAlignment="Top"
-                                     Width="32" Height="32" Foreground="#44FFFFFF" Opacity="0.5"/>
-                            </Grid>
-                        </Border>
+                    <materialDesign:Card Margin="8" Style="{StaticResource ModernCard}" Background="#FFF1F2">
+                        <Grid>
+                            <StackPanel>
+                                <TextBlock Text="CHUYÊN CẦN" FontSize="11" FontWeight="Black" Foreground="#E11D48"/>
+                                <TextBlock Text="{Binding MonthlyAttendanceRate, StringFormat={}{0:F1}%}" FontSize="32" FontWeight="Black" Foreground="#881337" Margin="0,4"/>
+                                <TextBlock Text="Tháng hiện tại" FontSize="12" Foreground="#FB7185"/>
+                            </StackPanel>
+                            <materialDesign:PackIcon Kind="CheckCircle" HorizontalAlignment="Right" VerticalAlignment="Top"
+                                 Width="28" Height="28" Foreground="#FB7185" Opacity="0.1"/>
+                        </Grid>
                     </materialDesign:Card>
                 </UniformGrid>
 
@@ -208,13 +166,13 @@
                     <materialDesign:Card Margin="6" Padding="12" Grid.Column="2"
                                           materialDesign:ElevationAssist.Elevation="Dp2">
                         <StackPanel>
-                            <TextBlock Text="📝 Trạng thái nghỉ phép" FontWeight="Bold"
+                            <TextBlock Text="💰 Quỹ lương theo phòng ban" FontWeight="Bold"
                                        FontSize="14" Margin="0,0,0,8"/>
-                            <lvc:CartesianChart Series="{Binding LeaveStatusSeries}"
+                            <lvc:CartesianChart Series="{Binding BudgetDistributionSeries}"
                                                 Height="220">
-                                <lvc:CartesianChart.AxisX>
-                                    <lvc:Axis Labels="{Binding LeaveStatusLabels}"/>
-                                </lvc:CartesianChart.AxisX>
+                                <lvc:CartesianChart.AxisY>
+                                    <lvc:Axis LabelFormatter="{Binding YFormatter}"/>
+                                </lvc:CartesianChart.AxisY>
                             </lvc:CartesianChart>
                         </StackPanel>
                     </materialDesign:Card>
@@ -259,34 +217,55 @@
                             </StackPanel>
                         </materialDesign:Card>
 
-                        <!-- Upcoming Birthdays -->
-                        <materialDesign:Card Margin="6" Padding="12"
-                                              materialDesign:ElevationAssist.Elevation="Dp2">
-                            <StackPanel>
-                                <TextBlock Text="🎂 Sinh nhật tháng này" FontWeight="Bold"
-                                           FontSize="14" Margin="0,0,0,8"/>
-                                <ItemsControl ItemsSource="{Binding UpcomingBirthdays}">
-                                    <ItemsControl.ItemTemplate>
-                                        <DataTemplate>
-                                            <Border BorderThickness="0,0,0,1"
-                                                    BorderBrush="{DynamicResource MaterialDesignDivider}"
-                                                    Padding="4,6">
-                                                <StackPanel Orientation="Horizontal">
-                                                    <materialDesign:PackIcon Kind="CakeVariant" Width="18" Height="18"
-                                                                             Foreground="#FFFF9800" Margin="0,0,8,0"/>
-                                                    <TextBlock Text="{Binding Name}" FontWeight="SemiBold" Margin="0,0,8,0"/>
-                                                    <TextBlock Text="{Binding DateOfBirth, StringFormat=dd/MM}"
-                                                               Opacity="0.6" FontSize="12"/>
-                                                </StackPanel>
-                                            </Border>
-                                        </DataTemplate>
-                                    </ItemsControl.ItemTemplate>
-                                </ItemsControl>
-                                <TextBlock Text="Không có sinh nhật tháng này 🎉"
-                                           Visibility="{Binding UpcomingBirthdays.Count, Converter={StaticResource BoolToVis}}"
-                                           Opacity="0.5" HorizontalAlignment="Center" Margin="8"/>
-                            </StackPanel>
-                        </materialDesign:Card>
+                        <!-- Upcoming Birthdays & Anniversaries -->
+                        <Grid Margin="6">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            
+                            <materialDesign:Card Grid.Column="0" Margin="0,0,6,0" Padding="12"
+                                                  materialDesign:ElevationAssist.Elevation="Dp2">
+                                <StackPanel>
+                                    <TextBlock Text="🎂 Sinh nhật tháng này" FontWeight="Bold"
+                                               FontSize="14" Margin="0,0,0,8"/>
+                                    <ItemsControl ItemsSource="{Binding UpcomingBirthdays}">
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <Border BorderThickness="0,0,0,1" BorderBrush="{DynamicResource MaterialDesignDivider}" Padding="4,6">
+                                                    <StackPanel Orientation="Horizontal">
+                                                        <materialDesign:PackIcon Kind="CakeVariant" Width="18" Height="18" Foreground="#FFFF9800" Margin="0,0,8,0"/>
+                                                        <TextBlock Text="{Binding Name}" FontWeight="SemiBold" Margin="0,0,8,0"/>
+                                                        <TextBlock Text="{Binding DateOfBirth, StringFormat=dd/MM}" Opacity="0.6" FontSize="12"/>
+                                                    </StackPanel>
+                                                </Border>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                </StackPanel>
+                            </materialDesign:Card>
+
+                            <materialDesign:Card Grid.Column="1" Margin="6,0,0,0" Padding="12"
+                                                  materialDesign:ElevationAssist.Elevation="Dp2">
+                                <StackPanel>
+                                    <TextBlock Text="🎖️ Kỷ niệm ngày vào làm" FontWeight="Bold"
+                                               FontSize="14" Margin="0,0,0,8"/>
+                                    <ItemsControl ItemsSource="{Binding UpcomingAnniversaries}">
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <Border BorderThickness="0,0,0,1" BorderBrush="{DynamicResource MaterialDesignDivider}" Padding="4,6">
+                                                    <StackPanel Orientation="Horizontal">
+                                                        <materialDesign:PackIcon Kind="Seal" Width="18" Height="18" Foreground="#FF4CAF50" Margin="0,0,8,0"/>
+                                                        <TextBlock Text="{Binding Name}" FontWeight="SemiBold" Margin="0,0,8,0"/>
+                                                        <TextBlock Text="{Binding HireDate, StringFormat=dd/MM}" Opacity="0.6" FontSize="12"/>
+                                                    </StackPanel>
+                                                </Border>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                </StackPanel>
+                            </materialDesign:Card>
+                        </Grid>
                     </StackPanel>
 
                     <!-- Quick Actions -->

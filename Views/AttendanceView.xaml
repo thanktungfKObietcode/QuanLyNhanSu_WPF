@@ -51,6 +51,7 @@
                         <DatePicker SelectedDate="{Binding MarkDate}" Width="120" Margin="0,0,16,0"/>
                         <TextBox materialDesign:HintAssist.Hint="Giờ vào" Text="{Binding MarkCheckIn}" Width="80" Margin="0,0,16,0"/>
                         <TextBox materialDesign:HintAssist.Hint="Giờ ra" Text="{Binding MarkCheckOut}" Width="80" Margin="0,0,16,0"/>
+                        <TextBox materialDesign:HintAssist.Hint="Giờ OT" Text="{Binding MarkOvertime}" Width="80" Margin="0,0,16,0"/>
                         <ComboBox ItemsSource="{Binding StatusOptions}" SelectedItem="{Binding MarkStatus}" Width="100" Margin="0,0,16,0"/>
                         <Button Command="{Binding MarkAttendanceCommand}" Content="XÁC NHẬN" Style="{StaticResource MaterialDesignRaisedButton}"/>
                     </StackPanel>
@@ -59,7 +60,7 @@
         </materialDesign:Card>
 
         <!-- Attendance List -->
-        <materialDesign:Card Grid.Row="1" materialDesign:ElevationAssist.Elevation="Dp1">
+        <materialDesign:Card Grid.Row="2" materialDesign:ElevationAssist.Elevation="Dp1">
             <Grid>
                 <DataGrid ItemsSource="{Binding Records}" AutoGenerateColumns="False" IsReadOnly="True"
                           materialDesign:DataGridAssist.CellPadding="13 8 8 8"
@@ -70,6 +71,7 @@
                                             Visibility="{Binding DataContext.IsAdmin, RelativeSource={RelativeSource AncestorType=UserControl}, Converter={StaticResource BoolToVis}}"/>
                         <DataGridTextColumn Header="Giờ vào" Binding="{Binding CheckIn, StringFormat=\{0:hh\\:mm\}}" Width="100"/>
                         <DataGridTextColumn Header="Giờ ra" Binding="{Binding CheckOut, StringFormat=\{0:hh\\:mm\}}" Width="100"/>
+                        <DataGridTextColumn Header="OT (Giờ)" Binding="{Binding OvertimeHours, StringFormat=\{0:N1\}}" Width="80"/>
                         <DataGridTemplateColumn Header="Trạng thái" Width="120">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
@@ -77,16 +79,16 @@
                                         <Border.Style>
                                             <Style TargetType="Border">
                                                 <Style.Triggers>
-                                                    <DataTrigger Binding="{Binding Status}" Value="Present">
+                                                    <DataTrigger Binding="{Binding Status}" Value="Có mặt">
                                                         <Setter Property="Background" Value="#E8F5E9"/><Setter Property="Tag" Value="#2E7D32"/>
                                                     </DataTrigger>
-                                                    <DataTrigger Binding="{Binding Status}" Value="Late">
+                                                    <DataTrigger Binding="{Binding Status}" Value="Đi muộn">
                                                         <Setter Property="Background" Value="#FFF3E0"/><Setter Property="Tag" Value="#EF6C00"/>
                                                     </DataTrigger>
-                                                    <DataTrigger Binding="{Binding Status}" Value="Absent">
+                                                    <DataTrigger Binding="{Binding Status}" Value="Vắng mặt">
                                                         <Setter Property="Background" Value="#FFEBEE"/><Setter Property="Tag" Value="#C62828"/>
                                                     </DataTrigger>
-                                                    <DataTrigger Binding="{Binding Status}" Value="OnLeave">
+                                                    <DataTrigger Binding="{Binding Status}" Value="Nghỉ phép">
                                                         <Setter Property="Background" Value="#E3F2FD"/><Setter Property="Tag" Value="#1565C0"/>
                                                     </DataTrigger>
                                                 </Style.Triggers>

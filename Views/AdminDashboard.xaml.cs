@@ -12,12 +12,19 @@ namespace QuanLyNhanSu_WPF.Views
         public AdminDashboard()
         {
             InitializeComponent();
-            _vm = new AdminDashboardViewModel();
-            _vm.NavigateToEmployees   += () => NavigateTo("EmployeeManagement");
-            _vm.NavigateToDepartments += () => NavigateTo("DepartmentPosition");
-            _vm.NavigateToLeaves      += () => NavigateTo("LeaveApproval");
-            _vm.NavigateToAttendance  += () => NavigateTo("Attendance");
-            DataContext = _vm;
+            DataContextChanged += AdminDashboard_DataContextChanged;
+        }
+
+        private void AdminDashboard_DataContextChanged(object sender, DependencyPropertyChangedEventArgs e)
+        {
+            if (e.NewValue is AdminDashboardViewModel vm)
+            {
+                _vm = vm;
+                _vm.NavigateToEmployees += () => NavigateTo("EmployeeManagement");
+                _vm.NavigateToDepartments += () => NavigateTo("DepartmentPosition");
+                _vm.NavigateToLeaves += () => NavigateTo("LeaveApproval");
+                _vm.NavigateToAttendance += () => NavigateTo("Attendance");
+            }
         }
 
         private void NavigateTo(string viewKey)

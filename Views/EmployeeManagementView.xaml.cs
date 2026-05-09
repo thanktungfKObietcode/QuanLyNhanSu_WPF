@@ -11,19 +11,24 @@ namespace QuanLyNhanSu_WPF.Views
         public EmployeeManagementView()
         {
             InitializeComponent();
-            _vm = new EmployeeManagementViewModel();
-            
-            // Xử lý sự kiện khi tạo tài khoản thành công
-            _vm.UserAccountCreated += (msg) => MessageBox.Show(msg, "Thông báo", MessageBoxButton.OK, MessageBoxImage.Information);
-            
-            // Xử lý sự kiện lỗi
-            _vm.ErrorOccurred += (msg) => MessageBox.Show(msg, "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
+            DataContextChanged += EmployeeManagementView_DataContextChanged;
+        }
 
-            // Xử lý yêu cầu thêm/sửa nhân viên (Mở Window mới)
-            _vm.AddRequested += (emp) => OpenEmployeeForm(emp);
-            _vm.EditRequested += (emp) => OpenEmployeeForm(emp);
+        private void EmployeeManagementView_DataContextChanged(object sender, DependencyPropertyChangedEventArgs e)
+        {
+            if (e.NewValue is EmployeeManagementViewModel vm)
+            {
+                _vm = vm;
+                // Xử lý sự kiện khi tạo tài khoản thành công
+                _vm.UserAccountCreated += (msg) => MessageBox.Show(msg, "Thông báo", MessageBoxButton.OK, MessageBoxImage.Information);
+                
+                // Xử lý sự kiện lỗi
+                _vm.ErrorOccurred += (msg) => MessageBox.Show(msg, "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
 
-            DataContext = _vm;
+                // Xử lý yêu cầu thêm/sửa nhân viên (Mở Window mới)
+                _vm.AddRequested += (emp) => OpenEmployeeForm(emp);
+                _vm.EditRequested += (emp) => OpenEmployeeForm(emp);
+            }
         }
 
         private void OpenEmployeeForm(Models.Employee employee)

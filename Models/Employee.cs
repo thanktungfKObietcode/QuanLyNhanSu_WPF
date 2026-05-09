@@ -11,6 +11,14 @@ namespace QuanLyNhanSu_WPF.Models
         OnLeave
     }
 
+    // Employment type determines salary factor
+    public enum EmploymentType
+    {
+        Permanent,   // Full salary
+        Probation,   // 70% of base salary
+        PartTime     // 50% of base salary
+    }
+
     public class Employee
     {
         [Key]
@@ -41,6 +49,11 @@ namespace QuanLyNhanSu_WPF.Models
         public DateTime HireDate { get; set; } = DateTime.Today;
 
         public EmployeeStatus Status { get; set; } = EmployeeStatus.Active;
+        public EmploymentType EmploymentType { get; set; } = EmploymentType.Permanent;
+        // Total experience in days (e.g., previous jobs, internships)
+        public int ExperienceDays { get; set; }
+        // Highest degree or certification
+        public string Degree { get; set; }
 
         public int? DepartmentID { get; set; }
         [ForeignKey("DepartmentID")]
@@ -52,5 +65,8 @@ namespace QuanLyNhanSu_WPF.Models
 
         [MaxLength(500)]
         public string Photo { get; set; }
+
+        // Mức hoa hồng cơ bản (%) cho nhân viên Sales
+        public double BaseCommissionRate { get; set; } = 0;
     }
 }

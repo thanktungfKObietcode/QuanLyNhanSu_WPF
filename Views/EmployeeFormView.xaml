@@ -6,6 +6,8 @@
     <UserControl.Resources>
         <helpers:BoolToVisibilityConverter x:Key="BoolToVis"/>
         <helpers:NullOrEmptyToVisibilityConverter x:Key="NullToVis"/>
+        <helpers:BoolToStringConverter x:Key="BoolToStr"/>
+        <helpers:PathToImageConverter x:Key="PathToImg"/>
     </UserControl.Resources>
 
     <Grid Background="White" Margin="24">
@@ -16,7 +18,7 @@
         </Grid.RowDefinitions>
 
         <!-- Header -->
-        <TextBlock Text="{Binding IsEditMode, ConverterParameter='Chỉnh sửa nhân viên', Converter={StaticResource BoolToVis}}" 
+        <TextBlock Text="{Binding IsEditMode, Converter={StaticResource BoolToStr}, ConverterParameter='Chỉnh sửa nhân viên|Thêm nhân viên mới'}" 
                    FontSize="20" FontWeight="Bold" Margin="0,0,0,24"/>
 
         <!-- Form Fields -->
@@ -46,6 +48,12 @@
 
                         <DatePicker materialDesign:HintAssist.Hint="Ngày sinh" Style="{StaticResource MaterialDesignFloatingHintDatePicker}"
                                     SelectedDate="{Binding Employee.DateOfBirth}" Margin="0,0,0,16"/>
+
+                        <DatePicker materialDesign:HintAssist.Hint="Ngày vào" Style="{StaticResource MaterialDesignFloatingHintDatePicker}"
+                                    SelectedDate="{Binding Employee.HireDate}" Margin="0,0,0,16"/>
+
+                        <TextBox materialDesign:HintAssist.Hint="Bằng cấp" Style="{StaticResource MaterialDesignFloatingHintTextBox}"
+                                 Text="{Binding Employee.Degree, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,16"/>
                     </StackPanel>
 
                     <StackPanel Grid.Column="1" Margin="12,0,0,0">
@@ -62,6 +70,22 @@
                         <ComboBox materialDesign:HintAssist.Hint="Chức vụ" Style="{StaticResource MaterialDesignFloatingHintComboBox}"
                                   ItemsSource="{Binding Positions}" DisplayMemberPath="PosName"
                                   SelectedItem="{Binding Employee.Position}" Margin="0,0,0,16"/>
+
+                        <ComboBox materialDesign:HintAssist.Hint="Loại hợp đồng" Style="{StaticResource MaterialDesignFloatingHintComboBox}"
+                                  ItemsSource="{Binding EmploymentTypeOptions}" SelectedItem="{Binding Employee.EmploymentType}" Margin="0,0,0,16">
+                            <ComboBox.ItemTemplate>
+                                <DataTemplate>
+                                    <TextBlock Text="{Binding Converter={StaticResource EnumToVN}}"/>
+                                </DataTemplate>
+                            </ComboBox.ItemTemplate>
+                        </ComboBox>
+
+                        <TextBox materialDesign:HintAssist.Hint="Kinh nghiệm (số ngày)" Style="{StaticResource MaterialDesignFloatingHintTextBox}"
+                                 Text="{Binding Employee.ExperienceDays, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,16"/>
+
+                        <TextBox materialDesign:HintAssist.Hint="Tỷ lệ hoa hồng Sales (%)" Style="{StaticResource MaterialDesignFloatingHintTextBox}"
+                                 Text="{Binding Employee.BaseCommissionRate, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,16"
+                                 Visibility="{Binding IsSalesPosition, Converter={StaticResource BoolToVis}}"/>
                     </StackPanel>
                 </Grid>
 
@@ -74,9 +98,13 @@
                         <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
                     
-                    <materialDesign:Card Width="100" Height="100" Margin="0,8,16,0" VerticalAlignment="Top">
-                        <!-- Preview ảnh ở đây -->
-                        <materialDesign:PackIcon Kind="Account" Width="60" Height="60" HorizontalAlignment="Center" VerticalAlignment="Center" Opacity="0.3"/>
+                    <materialDesign:Card Width="100" Height="100" Margin="0,8,16,0" VerticalAlignment="Top" ClipToBounds="True">
+                        <Grid>
+                            <!-- Placeholder -->
+                            <materialDesign:PackIcon Kind="Account" Width="60" Height="60" HorizontalAlignment="Center" VerticalAlignment="Center" Opacity="0.3"/>
+                            <!-- Actual Image -->
+                            <Image Source="{Binding Employee.Photo, Converter={StaticResource PathToImg}}" Stretch="UniformToFill"/>
+                        </Grid>
                     </materialDesign:Card>
                     
                     <StackPanel Grid.Column="1">

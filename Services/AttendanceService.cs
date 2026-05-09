@@ -42,7 +42,7 @@ namespace QuanLyNhanSu_WPF.Services
         }
 
         /// <summary>Admin only: mark or update attendance for an employee.</summary>
-        public async Task<bool> MarkAttendanceAsync(int employeeId, DateTime date, TimeSpan? checkIn, TimeSpan? checkOut, string status, string note = null)
+        public async Task<bool> MarkAttendanceAsync(int employeeId, DateTime date, TimeSpan? checkIn, TimeSpan? checkOut, string status, double overtimeHours = 0, string note = null)
         {
             AuthorizationService.Current.CheckPermission(Permissions.Manage_Attendance);
 
@@ -53,6 +53,7 @@ namespace QuanLyNhanSu_WPF.Services
                 CheckIn = checkIn,
                 CheckOut = checkOut,
                 Status = status,
+                OvertimeHours = overtimeHours,
                 Note = note
             };
             await _repo.UpsertAsync(record);

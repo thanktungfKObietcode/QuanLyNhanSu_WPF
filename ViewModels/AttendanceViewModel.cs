@@ -27,6 +27,7 @@ namespace QuanLyNhanSu_WPF.ViewModels
         private string _markCheckIn = "08:00";
         private string _markCheckOut = "17:00";
         private string _markStatus = "Present";
+        private double _markOvertime = 0;
 
         public bool IsAdmin { get => _isAdmin; set => SetProperty(ref _isAdmin, value); }
         public bool IsLoading { get => _isLoading; set => SetProperty(ref _isLoading, value); }
@@ -40,13 +41,14 @@ namespace QuanLyNhanSu_WPF.ViewModels
         public string MarkCheckIn { get => _markCheckIn; set => SetProperty(ref _markCheckIn, value); }
         public string MarkCheckOut { get => _markCheckOut; set => SetProperty(ref _markCheckOut, value); }
         public string MarkStatus { get => _markStatus; set => SetProperty(ref _markStatus, value); }
+        public double MarkOvertime { get => _markOvertime; set => SetProperty(ref _markOvertime, value); }
 
         public ICommand LoadCommand { get; }
         public ICommand FilterCommand { get; }
         public ICommand MarkAttendanceCommand { get; }
 
         public ObservableCollection<string> StatusOptions { get; } = new()
-        { "Present", "Late", "Absent", "OnLeave" };
+        { "Có mặt", "Đi muộn", "Vắng mặt", "Nghỉ phép" };
 
         private readonly AttendanceService _service;
         private readonly EmployeeRepository _empRepo;
@@ -106,7 +108,7 @@ namespace QuanLyNhanSu_WPF.ViewModels
                 TimeSpan? checkOut = TimeSpan.TryParse(MarkCheckOut, out var co) ? co : null;
 
                 await _service.MarkAttendanceAsync(
-                    SelectedEmployee.EmployeeID, MarkDate, checkIn, checkOut, MarkStatus);
+                    SelectedEmployee.EmployeeID, MarkDate, checkIn, checkOut, MarkStatus, MarkOvertime);
                 await LoadAsync();
                 MessageBox.Show("Đã chấm công thành công!", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Information);
             }

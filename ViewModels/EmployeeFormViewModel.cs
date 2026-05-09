@@ -26,10 +26,13 @@ namespace QuanLyNhanSu_WPF.ViewModels
         public string ErrorMessage { get => _errorMessage; set => SetProperty(ref _errorMessage, value); }
         public ObservableCollection<Department> Departments { get => _departments; set => SetProperty(ref _departments, value); }
         public ObservableCollection<Position> Positions { get => _positions; set => SetProperty(ref _positions, value); }
+        public bool IsSalesPosition => Employee?.Position?.PosName?.ToLower().Contains("sale") == true || Employee?.Position?.PosName?.ToLower().Contains("kinh doanh") == true;
 
         public ObservableCollection<string> GenderOptions { get; } = new() { "Nam", "Nữ", "Khác" };
         public ObservableCollection<EmployeeStatus> StatusOptions { get; } = new()
         { EmployeeStatus.Active, EmployeeStatus.Inactive };
+        public ObservableCollection<EmploymentType> EmploymentTypeOptions { get; } = new()
+        { EmploymentType.Permanent, EmploymentType.Probation, EmploymentType.PartTime };
 
         public ICommand SaveCommand { get; }
         public ICommand CancelCommand { get; }

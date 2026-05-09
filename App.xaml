@@ -6,10 +6,72 @@
     <Application.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
-                <materialDesign:BundledTheme BaseTheme="Light" PrimaryColor="Indigo" SecondaryColor="Cyan"/>
-                <ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesign2.Defaults.xaml"/>
-                <ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesign3.Defaults.xaml"/>
+                <materialDesign:BundledTheme BaseTheme="Light" PrimaryColor="Indigo" SecondaryColor="Purple" />
+                <ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesign3.Defaults.xaml" />
             </ResourceDictionary.MergedDictionaries>
+
+            <!-- ── Modern Media Agency Design System ── -->
+            
+            <!-- 1. Core Colors -->
+            <Color x:Key="PrimaryColor">#6366F1</Color>
+            <Color x:Key="SecondaryColor">#A855F7</Color>
+            <Color x:Key="AccentColor">#10B981</Color>
+            <Color x:Key="SurfaceColor">#FFFFFF</Color>
+            <Color x:Key="BackgroundColor">#F8FAFC</Color>
+            
+            <!-- 2. Brushes (Must be defined before Styles) -->
+            <SolidColorBrush x:Key="PrimaryBrush" Color="{StaticResource PrimaryColor}"/>
+            <SolidColorBrush x:Key="BackgroundBrush" Color="{StaticResource BackgroundColor}"/>
+            <SolidColorBrush x:Key="TextPrimary" Color="#1E293B"/>
+            <SolidColorBrush x:Key="TextSecondary" Color="#64748B"/>
+            <SolidColorBrush x:Key="TextOnPrimary" Color="White"/>
+            <SolidColorBrush x:Key="SidebarBrush" Color="#0F172A"/>
+
+            <LinearGradientBrush x:Key="PremiumGradient" StartPoint="0,0" EndPoint="1,1">
+                <GradientStop Color="#6366F1" Offset="0"/>
+                <GradientStop Color="#8B5CF6" Offset="1"/>
+            </LinearGradientBrush>
+
+            <!-- 3. Global Styles -->
+            <Style TargetType="TextBlock">
+                <Setter Property="FontFamily" Value="Segoe UI Semibold"/>
+                <Setter Property="Foreground" Value="{StaticResource TextPrimary}"/>
+                <Setter Property="RenderOptions.BitmapScalingMode" Value="HighQuality"/>
+            </Style>
+
+            <!-- Premium Card Style -->
+            <Style x:Key="ModernCard" TargetType="materialDesign:Card">
+                <Setter Property="UniformCornerRadius" Value="20"/>
+                <Setter Property="Background" Value="White"/>
+                <Setter Property="Padding" Value="16"/>
+                <Setter Property="materialDesign:ElevationAssist.Elevation" Value="Dp0"/>
+                <Setter Property="BorderBrush" Value="#E2E8F0"/>
+                <Setter Property="BorderThickness" Value="1"/>
+                <Style.Triggers>
+                    <Trigger Property="IsMouseOver" Value="True">
+                        <Setter Property="BorderBrush" Value="{StaticResource PrimaryBrush}"/>
+                    </Trigger>
+                </Style.Triggers>
+            </Style>
+
+            <!-- Modern Button Style -->
+            <Style TargetType="Button" BasedOn="{StaticResource MaterialDesignRaisedButton}">
+                <Setter Property="materialDesign:ButtonAssist.CornerRadius" Value="12"/>
+                <Setter Property="Height" Value="45"/>
+                <Setter Property="Padding" Value="20,0"/>
+                <Setter Property="FontSize" Value="14"/>
+                <Setter Property="FontWeight" Value="Bold"/>
+                <Setter Property="Background" Value="{StaticResource PremiumGradient}"/>
+                <Setter Property="BorderThickness" Value="0"/>
+            </Style>
+
+            <Style x:Key="SecondaryButton" TargetType="Button" BasedOn="{StaticResource MaterialDesignOutlinedButton}">
+                <Setter Property="materialDesign:ButtonAssist.CornerRadius" Value="12"/>
+                <Setter Property="Height" Value="45"/>
+                <Setter Property="BorderBrush" Value="#E2E8F0"/>
+                <Setter Property="Foreground" Value="{StaticResource TextPrimary}"/>
+            </Style>
+            
         </ResourceDictionary>
     </Application.Resources>
 </Application>

@@ -23,5 +23,7 @@ namespace QuanLyNhanSu_WPF.Models
 
         [MaxLength(500)]
         public string Note { get; set; }
+
+        public double OvertimeHours { get; set; }
     }
 }

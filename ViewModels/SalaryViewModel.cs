@@ -72,9 +72,12 @@ namespace QuanLyNhanSu_WPF.ViewModels
                 ws.Cell(1, 3).Value = "Tháng/Năm";
                 ws.Cell(1, 4).Value = "Lương cơ bản";
                 ws.Cell(1, 5).Value = "Phụ cấp";
-                ws.Cell(1, 6).Value = "Thưởng";
-                ws.Cell(1, 7).Value = "Khấu trừ";
-                ws.Cell(1, 8).Value = "Thực lĩnh";
+                ws.Cell(1, 6).Value = "KPI/Thưởng";
+                ws.Cell(1, 7).Value = "Hoa hồng Sales";
+                ws.Cell(1, 8).Value = "Lương OT";
+                ws.Cell(1, 9).Value = "Thưởng khác";
+                ws.Cell(1, 10).Value = "Khấu trừ";
+                ws.Cell(1, 11).Value = "Thực lĩnh";
 
                 int row = 2;
                 foreach (var s in data)
@@ -84,15 +87,21 @@ namespace QuanLyNhanSu_WPF.ViewModels
                     ws.Cell(row, 3).Value = $"{s.Month}/{s.Year}";
                     ws.Cell(row, 4).Value = s.BaseSalary;
                     ws.Cell(row, 5).Value = s.Allowances;
-                    ws.Cell(row, 6).Value = s.Bonus;
-                    ws.Cell(row, 7).Value = s.Deductions;
-                    ws.Cell(row, 8).Value = s.NetSalary;
+                    ws.Cell(row, 6).Value = s.KPIBonus;
+                    ws.Cell(row, 7).Value = s.Commission;
+                    ws.Cell(row, 8).Value = s.OTSalary;
+                    ws.Cell(row, 9).Value = s.Bonus;
+                    ws.Cell(row, 10).Value = s.Deductions;
+                    ws.Cell(row, 11).Value = s.NetSalary;
                     
                     ws.Cell(row, 4).Style.NumberFormat.Format = "#,##0 \"₫\"";
                     ws.Cell(row, 5).Style.NumberFormat.Format = "#,##0 \"₫\"";
                     ws.Cell(row, 6).Style.NumberFormat.Format = "#,##0 \"₫\"";
                     ws.Cell(row, 7).Style.NumberFormat.Format = "#,##0 \"₫\"";
                     ws.Cell(row, 8).Style.NumberFormat.Format = "#,##0 \"₫\"";
+                    ws.Cell(row, 9).Style.NumberFormat.Format = "#,##0 \"₫\"";
+                    ws.Cell(row, 10).Style.NumberFormat.Format = "#,##0 \"₫\"";
+                    ws.Cell(row, 11).Style.NumberFormat.Format = "#,##0 \"₫\"";
                     row++;
                 }
             });

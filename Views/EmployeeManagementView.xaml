@@ -5,6 +5,8 @@
              xmlns:helpers="clr-namespace:QuanLyNhanSu_WPF.Helpers">
     <UserControl.Resources>
         <helpers:BoolToVisibilityConverter x:Key="BoolToVis"/>
+        <helpers:PathToImageConverter x:Key="PathToImg"/>
+        <helpers:EnumToVietnameseConverter x:Key="EnumToVN"/>
     </UserControl.Resources>
 
     <Grid Margin="24">
@@ -23,67 +25,108 @@
         </DockPanel>
 
         <!-- Search and Actions -->
-        <materialDesign:Card Grid.Row="1" Padding="16" Margin="0,0,0,24" materialDesign:ElevationAssist.Elevation="Dp2">
+        <materialDesign:Card Grid.Row="1" Style="{StaticResource ModernCard}" Margin="0,0,0,24">
             <DockPanel>
-                <StackPanel Orientation="Horizontal" DockPanel.Dock="Left">
-                    <materialDesign:PackIcon Kind="Search" VerticalAlignment="Center" Margin="0,0,12,0" Opacity="0.5" Width="20" Height="20"/>
-                    <TextBox Width="300" materialDesign:HintAssist.Hint="Tìm theo tên, mã hoặc email..." 
+                <StackPanel Orientation="Horizontal" DockPanel.Dock="Left" VerticalAlignment="Center">
+                    <materialDesign:PackIcon Kind="Search" VerticalAlignment="Center" Margin="8,0,12,0" Opacity="0.5" Width="20" Height="20"/>
+                    <TextBox Width="350" materialDesign:HintAssist.Hint="Tìm kiếm nhân sự..." 
                              Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
-                             Style="{StaticResource MaterialDesignFloatingHintTextBox}"/>
+                             Style="{StaticResource MaterialDesignFloatingHintTextBox}"
+                             BorderThickness="0" materialDesign:TextFieldAssist.HasClearButton="True"/>
                 </StackPanel>
 
                 <StackPanel Orientation="Horizontal" DockPanel.Dock="Right" HorizontalAlignment="Right">
-                    <Button Command="{Binding AddCommand}" Style="{StaticResource MaterialDesignFlatButton}"
-                            Content="➕ THÊM MỚI" Visibility="{Binding CanAdd, Converter={StaticResource BoolToVis}}"/>
-                    <Button Command="{Binding RefreshCommand}" Style="{StaticResource MaterialDesignFlatButton}"
-                            Content="🔄 LÀM MỚI" Margin="8,0,0,0"/>
-                    <Button Command="{Binding ExportCommand}" Style="{StaticResource MaterialDesignFlatButton}"
-                            Content="📥 XUẤT EXCEL" Margin="8,0,0,0" Foreground="Green"/>
+                    <Button Command="{Binding AddCommand}" 
+                            Content="➕ THÊM NHÂN VIÊN" 
+                            Visibility="{Binding CanAdd, Converter={StaticResource BoolToVis}}"
+                            Padding="16,0"/>
+                    <Button Command="{Binding RefreshCommand}" Style="{StaticResource SecondaryButton}"
+                            Content="🔄" Margin="8,0,0,0" Width="45" Padding="0"/>
+                    <Button Command="{Binding ExportCommand}" Style="{StaticResource SecondaryButton}"
+                            Content="📥 EXCEL" Margin="8,0,0,0" Foreground="#059669"/>
                 </StackPanel>
             </DockPanel>
         </materialDesign:Card>
 
         <!-- DataGrid -->
-        <materialDesign:Card Grid.Row="1" materialDesign:ElevationAssist.Elevation="Dp1">
+        <materialDesign:Card Grid.Row="2" Style="{StaticResource ModernCard}" Padding="0">
             <Grid>
                 <DataGrid ItemsSource="{Binding Employees}" SelectedItem="{Binding SelectedEmployee}"
                           AutoGenerateColumns="False" IsReadOnly="True" 
-                          materialDesign:DataGridAssist.CellPadding="13 8 8 8"
-                          materialDesign:DataGridAssist.ColumnHeaderPadding="8"
+                          Background="Transparent" BorderThickness="0"
+                          materialDesign:DataGridAssist.CellPadding="16 12"
+                          materialDesign:DataGridAssist.ColumnHeaderPadding="16 12"
                           VerticalScrollBarVisibility="Auto">
+                    <DataGrid.Resources>
+                        <Style TargetType="DataGridColumnHeader" BasedOn="{StaticResource MaterialDesignDataGridColumnHeader}">
+                            <Setter Property="Background" Value="#F1F5F9"/>
+                            <Setter Property="FontWeight" Value="ExtraBold"/>
+                            <Setter Property="Foreground" Value="#1E293B"/>
+                            <Setter Property="BorderThickness" Value="0,0,0,1"/>
+                            <Setter Property="BorderBrush" Value="#E2E8F0"/>
+                        </Style>
+                    </DataGrid.Resources>
                     <DataGrid.Columns>
-                        <DataGridTemplateColumn Header="Ảnh" Width="60">
+                        <DataGridTemplateColumn Header="Nhân viên" Width="250">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
-                                    <Ellipse Width="32" Height="32" Fill="{DynamicResource PrimaryHueLightBrush}">
-                                        <!-- Placeholder or Image binding would go here -->
-                                    </Ellipse>
+                                    <StackPanel Orientation="Horizontal">
+                                        <Border Width="40" Height="40" CornerRadius="20" ClipToBounds="True" Margin="0,0,12,0">
+                                            <Image Source="{Binding Photo, Converter={StaticResource PathToImg}}" Stretch="UniformToFill"/>
+                                        </Border>
+                                        <StackPanel VerticalAlignment="Center">
+                                            <TextBlock Text="{Binding Name}" FontWeight="Bold" Foreground="{DynamicResource TextPrimary}"/>
+                                            <TextBlock Text="{Binding Code}" FontSize="11" Foreground="{DynamicResource TextSecondary}"/>
+                                        </StackPanel>
+                                    </StackPanel>
                                 </DataTemplate>
                             </DataGridTemplateColumn.CellTemplate>
                         </DataGridTemplateColumn>
-                        <DataGridTextColumn Header="Mã NV" Binding="{Binding Code}" Width="100"/>
-                        <DataGridTextColumn Header="Họ và Tên" Binding="{Binding Name}" Width="200"/>
                         <DataGridTextColumn Header="Phòng ban" Binding="{Binding Department.DeptName}" Width="150"/>
                         <DataGridTextColumn Header="Chức vụ" Binding="{Binding Position.PosName}" Width="150"/>
-                        <DataGridTextColumn Header="Trạng thái" Binding="{Binding Status}" Width="100"/>
+                        <DataGridTemplateColumn Header="Trạng thái" Width="120">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <Border Padding="8,4" CornerRadius="12" HorizontalAlignment="Left">
+                                        <Border.Style>
+                                            <Style TargetType="Border">
+                                                <Setter Property="Background" Value="#F1F5F9"/>
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding Status}" Value="Active">
+                                                        <Setter Property="Background" Value="#DCFCE7"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Border.Style>
+                                        <TextBlock Text="{Binding Status, Converter={StaticResource EnumToVN}}" FontSize="11" FontWeight="Bold">
+                                            <TextBlock.Style>
+                                                <Style TargetType="TextBlock">
+                                                    <Setter Property="Foreground" Value="#64748B"/>
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding Status}" Value="Active">
+                                                            <Setter Property="Foreground" Value="#15803D"/>
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </TextBlock.Style>
+                                        </TextBlock>
+                                    </Border>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
                         <DataGridTemplateColumn Header="Thao tác" Width="*">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
                                     <StackPanel Orientation="Horizontal">
                                         <Button Style="{StaticResource MaterialDesignFlatButton}" 
                                                 Command="{Binding DataContext.EditCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
-                                                ToolTip="Chỉnh sửa" Width="30" Height="30">
-                                            <materialDesign:PackIcon Kind="Pencil" Width="16" Height="16"/>
-                                        </Button>
-                                        <Button Style="{StaticResource MaterialDesignFlatButton}" 
-                                                Command="{Binding DataContext.CreateUserAccountCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
-                                                ToolTip="Tạo tài khoản" Foreground="Green" Width="30" Height="30">
-                                            <materialDesign:PackIcon Kind="AccountPlus" Width="16" Height="16"/>
+                                                Width="32" Height="32" Padding="0" Foreground="{DynamicResource PrimaryBrush}">
+                                            <materialDesign:PackIcon Kind="PencilOutline" Width="18" Height="18"/>
                                         </Button>
                                         <Button Style="{StaticResource MaterialDesignFlatButton}" 
                                                 Command="{Binding DataContext.DeleteCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
-                                                ToolTip="Vô hiệu hóa" Foreground="Red" Width="30" Height="30">
-                                            <materialDesign:PackIcon Kind="Delete" Width="16" Height="16"/>
+                                                Width="32" Height="32" Padding="0" Foreground="#EF4444" Margin="4,0">
+                                            <materialDesign:PackIcon Kind="DeleteOutline" Width="18" Height="18"/>
                                         </Button>
                                     </StackPanel>
                                 </DataTemplate>

@@ -8,7 +8,7 @@
         xmlns:vm="clr-namespace:QuanLyNhanSu_WPF.ViewModels"
         xmlns:views="clr-namespace:QuanLyNhanSu_WPF.Views"
         mc:Ignorable="d"
-        Title="Quản Lý Nhân Sự" Height="700" Width="1200"
+        Title="MEDIA HR - Hệ Thống Quản Trị Nhân Sự" Height="700" Width="1200"
         WindowStartupLocation="CenterScreen"
         Background="{DynamicResource MaterialDesignPaper}">
 
@@ -36,70 +36,89 @@
         </DataTemplate>
 
         <Style x:Key="SidebarItemStyle" TargetType="ListBoxItem" BasedOn="{StaticResource MaterialDesignListBoxItem}">
-            <Setter Property="Padding" Value="16,12"/>
-            <Setter Property="Margin" Value="8,2"/>
+            <Setter Property="Padding" Value="16,14"/>
+            <Setter Property="Margin" Value="12,4"/>
             <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="materialDesign:ListBoxItemAssist.CornerRadius" Value="8"/>
+            <Setter Property="Foreground" Value="#CCFFFFFF"/>
+            <Setter Property="materialDesign:ListBoxItemAssist.CornerRadius" Value="12"/>
+            <Style.Triggers>
+                <Trigger Property="IsSelected" Value="True">
+                    <Setter Property="Background" Value="#33FFFFFF"/>
+                    <Setter Property="Foreground" Value="White"/>
+                </Trigger>
+            </Style.Triggers>
         </Style>
     </Window.Resources>
 
     <DockPanel>
         <!-- Top Bar -->
-        <Border DockPanel.Dock="Top" Height="64" Background="White" materialDesign:ElevationAssist.Elevation="Dp4">
+        <Border DockPanel.Dock="Top" Height="75" Background="White" BorderBrush="#F1F5F9" BorderThickness="0,0,0,1">
             <DockPanel>
-                <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="24,0,0,0">
-                    <materialDesign:PackIcon Kind="AccountTie" Width="36" Height="36" Foreground="{DynamicResource PrimaryHueMidBrush}"/>
-                    <TextBlock Text="HR MASTER" Foreground="{DynamicResource PrimaryHueMidBrush}" FontSize="22" FontWeight="Black" VerticalAlignment="Center" Margin="12,0,0,0"/>
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="32,0,0,0">
+                    <materialDesign:PackIcon Kind="StarFace" Width="32" Height="32" Foreground="{DynamicResource PrimaryBrush}"/>
+                    <TextBlock Text="MEDIA HR" Foreground="{DynamicResource TextPrimary}" FontSize="24" FontWeight="Black" VerticalAlignment="Center" Margin="12,0,0,0"/>
                 </StackPanel>
                 
-                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,24,0">
-                    <StackPanel VerticalAlignment="Center" Margin="0,0,16,0" HorizontalAlignment="Right">
-                        <TextBlock Text="{Binding DisplayName}" FontWeight="Bold" FontSize="14" HorizontalAlignment="Right"/>
-                        <TextBlock Text="{Binding DisplayRole}" Opacity="0.6" FontSize="11" HorizontalAlignment="Right"/>
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,32,0">
+                    <StackPanel VerticalAlignment="Center" Margin="0,0,20,0" HorizontalAlignment="Right">
+                        <TextBlock Text="{Binding DisplayName}" FontWeight="Bold" FontSize="15" Foreground="{DynamicResource TextPrimary}"/>
+                        <TextBlock Text="{Binding DisplayRole}" Opacity="0.5" FontSize="11" HorizontalAlignment="Right" Foreground="{DynamicResource TextSecondary}"/>
                     </StackPanel>
                     
-                    <materialDesign:PopupBox PlacementMode="BottomAndAlignRightEdges" UnfurlOrientation="Vertical"
-                                             ToolTip="Tài khoản" Cursor="Hand">
+                    <materialDesign:PopupBox PlacementMode="BottomAndAlignRightEdges" UnfurlOrientation="Vertical" Cursor="Hand">
                         <materialDesign:PopupBox.ToggleContent>
-                            <Ellipse Width="40" Height="40">
-                                <Ellipse.Fill>
-                                    <ImageBrush ImageSource="{Binding Photo}"/>
-                                </Ellipse.Fill>
-                            </Ellipse>
+                            <Border Width="48" Height="48" CornerRadius="24" BorderBrush="{DynamicResource PrimaryBrush}" BorderThickness="2" Padding="2">
+                                <Ellipse>
+                                    <Ellipse.Fill>
+                                        <ImageBrush ImageSource="{Binding Photo}" Stretch="UniformToFill"/>
+                                    </Ellipse.Fill>
+                                </Ellipse>
+                            </Border>
                         </materialDesign:PopupBox.ToggleContent>
-                        <StackPanel Width="150">
-                            <Button Content="Hồ sơ" Padding="16,8"/>
-                            <Button Content="Cài đặt" Padding="16,8"/>
-                            <Separator/>
-                            <Button Content="Đăng xuất" Command="{Binding LogoutCommand}" Padding="16,8" Foreground="Red"/>
+                        <StackPanel Width="200">
+                            <Button Content="👤 Hồ sơ cá nhân" Style="{StaticResource MaterialDesignFlatButton}"/>
+                            <Button Content="⚙️ Cài đặt hệ thống" Style="{StaticResource MaterialDesignFlatButton}"/>
+                            <Separator Background="#F1F5F9"/>
+                            <Button Content="🚪 Đăng xuất" Command="{Binding LogoutCommand}" Foreground="#EF4444" Style="{StaticResource MaterialDesignFlatButton}"/>
                         </StackPanel>
                     </materialDesign:PopupBox>
                 </StackPanel>
             </DockPanel>
         </Border>
+
         <!-- Sidebar Menu -->
-        <Border DockPanel.Dock="Left" Width="260" Background="#F5F5F7" BorderBrush="#E0E0E0" BorderThickness="0,0,1,0">
-            <ListBox ItemsSource="{Binding MenuItems}" 
-                     SelectedItem="{Binding SelectedMenuItem}" 
-                     ItemContainerStyle="{StaticResource SidebarItemStyle}"
-                     BorderThickness="0" Background="Transparent"
-                     Margin="0,16">
-                <ListBox.ItemTemplate>
-                    <DataTemplate>
-                        <StackPanel Orientation="Horizontal" Height="24">
-                            <materialDesign:PackIcon Kind="{Binding Icon}" Width="22" Height="22" VerticalAlignment="Center" Opacity="0.8"/>
-                            <TextBlock Text="{Binding Title}" Margin="16,0,0,0" VerticalAlignment="Center" FontSize="14" FontWeight="Medium"/>
-                        </StackPanel>
-                    </DataTemplate>
-                </ListBox.ItemTemplate>
-            </ListBox>
+        <Border DockPanel.Dock="Left" Width="260" Background="{DynamicResource SidebarBrush}">
+            <Grid>
+                <ListBox ItemsSource="{Binding MenuItems}" 
+                         SelectedItem="{Binding SelectedMenuItem}" 
+                         ItemContainerStyle="{StaticResource SidebarItemStyle}"
+                         BorderThickness="0" Background="Transparent"
+                         Margin="0,32">
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+                            <StackPanel Orientation="Horizontal" Height="30">
+                                <materialDesign:PackIcon Kind="{Binding Icon}" Width="22" Height="22" 
+                                                         VerticalAlignment="Center" Foreground="White" Opacity="0.9"/>
+                                <TextBlock Text="{Binding Title}" Margin="16,0,0,0" 
+                                           VerticalAlignment="Center" FontSize="14" Foreground="White"/>
+                            </StackPanel>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+                
+                <!-- Bottom Info -->
+                <TextBlock Text="v2.0 Premium Build" Foreground="White" Opacity="0.3" 
+                           FontSize="10" VerticalAlignment="Bottom" HorizontalAlignment="Center" Margin="0,0,0,16"/>
+            </Grid>
         </Border>
 
         <!-- Main Content Area -->
-        <materialDesign:Transitioner SelectedIndex="0">
-            <materialDesign:TransitionerSlide>
-                <ContentControl Content="{Binding CurrentViewModel}" Margin="0"/>
-            </materialDesign:TransitionerSlide>
-        </materialDesign:Transitioner>
+        <Grid Background="{DynamicResource BackgroundBrush}">
+            <materialDesign:Transitioner SelectedIndex="0">
+                <materialDesign:TransitionerSlide>
+                    <ContentControl Content="{Binding CurrentViewModel}" Margin="24"/>
+                </materialDesign:TransitionerSlide>
+            </materialDesign:Transitioner>
+        </Grid>
     </DockPanel>
 </Window>

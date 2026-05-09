@@ -27,20 +27,76 @@ namespace QuanLyNhanSu_WPF.Services
         /// </summary>
         public async Task<Salary> CalculateMonthlySalaryAsync(
             Employee employee, int month, int year,
-            decimal allowances = 0, decimal bonus = 0, decimal deductions = 0)
+            decimal allowances = 0, decimal kpiBonus = 0, decimal otHours = 0, decimal deductions = 0, decimal salesRevenue = 0)
         {
             AuthorizationService.Current.CheckPermission(Permissions.Calculate_Salary);
 
-            decimal baseSalary = employee.Position?.BaseSalary ?? 0;
+            // 1. Xác định lương cứng dựa trên vị trí và kinh nghiệm (Yêu cầu công ty truyền thông)
+            decimal baseSalary = 0;
+            
+            // Tính tổng kinh nghiệm = Kinh nghiệm cũ (ngày) + Thâm niên tại công ty (ngày)
+            int tenureDays = (DateTime.Today - employee.HireDate).Days;
+            double totalExpDays = employee.ExperienceDays + Math.Max(0, tenureDays);
+            double yearsExp = totalExpDays / 365.0;
+            string posName = employee.Position?.PosName?.ToLower() ?? "";
 
-            // Count present/late days in month
+            if (posName.Contains("sale") || posName.Contains("kinh doanh"))
+            {
+                baseSalary = 8000000m; // Sale Media lương cứng thấp hơn nhưng commission cao
+            }
+            else if (yearsExp < 0.5) // Intern / Thực tập
+            {
+                baseSalary = 4000000m;
+            }
+            else if (yearsExp < 1) // Nhân viên mới
+            {
+                baseSalary = 9000000m;
+            }
+            else if (yearsExp < 4) // Chuyên viên / Junior
+            {
+                baseSalary = 13500000m;
+            }
+            else // Leader / Manager / Senior
+            {
+                baseSalary = 18500000m;
+            }
+
+            // 2. Tính phụ cấp cố định (ăn trưa, gửi xe...) - Giả định 1.000.000 VNĐ cho công ty truyền thông
+            decimal fixedAllowances = 1000000m;
+
+            // Apply employment type factor (Thử việc 70%, v.v.)
+            decimal factor = employee.EmploymentType switch
+            {
+                EmploymentType.Permanent => 1m,
+                EmploymentType.Probation => 0.7m,
+                EmploymentType.PartTime => 0.5m,
+                _ => 1m
+            };
+            
+            decimal adjustedBase = baseSalary * factor;
             var from = new DateTime(year, month, 1);
             var to = from.AddMonths(1).AddDays(-1);
             var records = await _attendanceRepo.GetByEmployeeAsync(employee.EmployeeID, from, to);
-            int workingDays = records.Count(a => a.Status == "Present" || a.Status == "Late");
+            // Ngày công thực tế bao gồm Có mặt, Đi muộn và Nghỉ phép (có lương)
+            int workingDays = records.Count(a => a.Status == "Có mặt" || a.Status == "Đi muộn" || a.Status == "Nghỉ phép");
+            
+            // Tự động lấy tổng giờ OT từ bảng điểm danh nếu không truyền vào thủ công
+            if (otHours == 0)
+            {
+                otHours = (decimal)records.Sum(a => a.OvertimeHours);
+            }
 
-            decimal dailyRate = baseSalary / StandardWorkDays;
-            decimal netSalary = dailyRate * workingDays + allowances + bonus - deductions;
+            // 3. Tính lương OT (Làm thêm giờ) - Sau khi đã có tổng giờ OT
+            decimal hourlyRate = baseSalary / StandardWorkDays / 8;
+            decimal otSalary = otHours * hourlyRate * 1.5m;
+
+            // 4. Tính hoa hồng Sales (Chuyên nghiệp: Tự động tính dựa trên doanh số và tỷ lệ thiết lập)
+            decimal commission = salesRevenue * (decimal)(employee.BaseCommissionRate / 100.0);
+
+            decimal dailyRate = adjustedBase / StandardWorkDays;
+            
+            // Tổng thu nhập = Lương cứng (theo ngày công) + KPI + Phụ cấp + OT + Hoa hồng - Khấu trừ
+            decimal netSalary = (dailyRate * workingDays) + kpiBonus + (allowances + fixedAllowances) + otSalary + commission - deductions;
 
             var salary = new Salary
             {
@@ -48,8 +104,11 @@ namespace QuanLyNhanSu_WPF.Services
                 Month = month,
                 Year = year,
                 BaseSalary = baseSalary,
-                Allowances = allowances,
-                Bonus = bonus,
+                Allowances = allowances + fixedAllowances,
+                KPIBonus = kpiBonus,
+                OTSalary = otSalary,
+                Commission = commission,
+                Bonus = 0, // Dùng KPIBonus thay thế hoặc gộp chung
                 Deductions = deductions,
                 NetSalary = Math.Max(0, netSalary)
             };

@@ -49,6 +49,9 @@
                             <DataGridTextColumn Header="Mã NV" Binding="{Binding Employee.Code}" Width="100"/>
                             <DataGridTextColumn Header="Lương cơ bản" Binding="{Binding BaseSalary, StringFormat={}{0:N0} ₫}" Width="120"/>
                             <DataGridTextColumn Header="Phụ cấp" Binding="{Binding Allowances, StringFormat={}{0:N0} ₫}" Width="100"/>
+                            <DataGridTextColumn Header="Hoa hồng" Binding="{Binding Commission, StringFormat={}{0:N0} ₫}" Width="100"/>
+                            <DataGridTextColumn Header="KPI/Thưởng" Binding="{Binding KPIBonus, StringFormat={}{0:N0} ₫}" Width="100"/>
+                            <DataGridTextColumn Header="Lương OT" Binding="{Binding OTSalary, StringFormat={}{0:N0} ₫}" Width="100"/>
                             <DataGridTextColumn Header="Thực lĩnh" Binding="{Binding NetSalary, StringFormat={}{0:N0} ₫}" Width="120">
                                 <DataGridTextColumn.ElementStyle>
                                     <Style TargetType="TextBlock">
@@ -106,11 +109,23 @@
                         <TextBlock Text="{Binding SelectedSalary.BaseSalary, StringFormat={}{0:N0} ₫}" DockPanel.Dock="Right" HorizontalAlignment="Right"/>
                     </DockPanel>
                     <DockPanel Margin="0,4">
-                        <TextBlock Text="(+) Phụ cấp"/>
+                        <TextBlock Text="(+) Phụ cấp (Xăng xe, ăn trưa...)"/>
                         <TextBlock Text="{Binding SelectedSalary.Allowances, StringFormat={}{0:N0} ₫}" DockPanel.Dock="Right" HorizontalAlignment="Right" Foreground="Green"/>
                     </DockPanel>
                     <DockPanel Margin="0,4">
-                        <TextBlock Text="(+) Thưởng"/>
+                        <TextBlock Text="(+) KPI"/>
+                        <TextBlock Text="{Binding SelectedSalary.KPIBonus, StringFormat={}{0:N0} ₫}" DockPanel.Dock="Right" HorizontalAlignment="Right" Foreground="Green"/>
+                    </DockPanel>
+                    <DockPanel Margin="0,4">
+                        <TextBlock Text="(+) Hoa hồng"/>
+                        <TextBlock Text="{Binding SelectedSalary.Commission, StringFormat={}{0:N0} ₫}" DockPanel.Dock="Right" HorizontalAlignment="Right" Foreground="Green"/>
+                    </DockPanel>
+                    <DockPanel Margin="0,4">
+                        <TextBlock Text="(+) Lương tăng ca (OT)"/>
+                        <TextBlock Text="{Binding SelectedSalary.OTSalary, StringFormat={}{0:N0} ₫}" DockPanel.Dock="Right" HorizontalAlignment="Right" Foreground="Green"/>
+                    </DockPanel>
+                    <DockPanel Margin="0,4">
+                        <TextBlock Text="(+) Thưởng khác"/>
                         <TextBlock Text="{Binding SelectedSalary.Bonus, StringFormat={}{0:N0} ₫}" DockPanel.Dock="Right" HorizontalAlignment="Right" Foreground="Green"/>
                     </DockPanel>
                     <DockPanel Margin="0,4">

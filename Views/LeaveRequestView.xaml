@@ -7,6 +7,7 @@
     <UserControl.Resources>
         <helpers:BoolToVisibilityConverter x:Key="BoolToVis"/>
         <helpers:InverseBoolToVisibilityConverter x:Key="InvBoolToVis"/>
+        <helpers:EnumToVietnameseConverter x:Key="EnumToVN"/>
     </UserControl.Resources>
 
     <Grid Margin="16">
@@ -37,7 +38,7 @@
                             <DataGrid.Columns>
                                 <DataGridTextColumn Header="Nhân viên" Binding="{Binding Employee.Name}" Width="120"/>
                                 <DataGridTextColumn Header="Loại" Binding="{Binding LeaveType}" Width="80"/>
-                                <DataGridTextColumn Header="Trạng thái" Binding="{Binding Status}" Width="100"/>
+                                <DataGridTextColumn Header="Trạng thái" Binding="{Binding Status, Converter={StaticResource EnumToVN}}" Width="100"/>
                                 <DataGridTextColumn Header="Bắt đầu" Binding="{Binding StartDate, StringFormat=dd/MM/yyyy}" Width="90"/>
                                 <DataGridTextColumn Header="Kết thúc" Binding="{Binding EndDate, StringFormat=dd/MM/yyyy}" Width="90"/>
                                 <DataGridTextColumn Header="Ghi chú duyệt" Binding="{Binding ApprovalNote}" Width="*"/>
@@ -50,7 +51,7 @@
                         <DataGrid ItemsSource="{Binding MyRequests}" AutoGenerateColumns="False" IsReadOnly="True" Margin="0,8">
                             <DataGrid.Columns>
                                 <DataGridTextColumn Header="Loại" Binding="{Binding LeaveType}" Width="80"/>
-                                <DataGridTextColumn Header="Trạng thái" Binding="{Binding Status}" Width="100"/>
+                                <DataGridTextColumn Header="Trạng thái" Binding="{Binding Status, Converter={StaticResource EnumToVN}}" Width="100"/>
                                 <DataGridTextColumn Header="Từ ngày" Binding="{Binding StartDate, StringFormat=dd/MM/yyyy}" Width="100"/>
                                 <DataGridTextColumn Header="Đến ngày" Binding="{Binding EndDate, StringFormat=dd/MM/yyyy}" Width="100"/>
                                 <DataGridTextColumn Header="Ghi chú Admin" Binding="{Binding ApprovalNote}" Width="*"/>

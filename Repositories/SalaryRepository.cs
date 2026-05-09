@@ -62,6 +62,9 @@ namespace QuanLyNhanSu_WPF.Repositories
             {
                 existing.BaseSalary = salary.BaseSalary;
                 existing.Allowances = salary.Allowances;
+                existing.KPIBonus = salary.KPIBonus;
+                existing.OTSalary = salary.OTSalary;
+                existing.Commission = salary.Commission;
                 existing.Bonus = salary.Bonus;
                 existing.Deductions = salary.Deductions;
                 existing.NetSalary = salary.NetSalary;

@@ -39,14 +39,14 @@ namespace QuanLyNhanSu_WPF.Repositories
         {
             var today = DateTime.Today;
             return await _db.Attendances
-                .CountAsync(a => a.Date.Date == today && a.Status == "Present");
+                .CountAsync(a => a.Date.Date == today && a.Status == "Có mặt");
         }
 
         public async Task<int> GetOnLeaveCountAsync()
         {
             var today = DateTime.Today;
             return await _db.Attendances
-                .CountAsync(a => a.Date.Date == today && a.Status == "OnLeave");
+                .CountAsync(a => a.Date.Date == today && a.Status == "Nghỉ phép");
         }
 
         public async Task<double> GetMonthlyAttendanceRateAsync(int month, int year)
@@ -56,7 +56,7 @@ namespace QuanLyNhanSu_WPF.Repositories
             if (total == 0) return 0;
             var present = await _db.Attendances
                 .CountAsync(a => a.Date.Month == month && a.Date.Year == year
-                              && (a.Status == "Present" || a.Status == "Late"));
+                              && (a.Status == "Có mặt" || a.Status == "Đi muộn"));
             return Math.Round((double)present / total * 100, 1);
         }
 
@@ -90,6 +90,7 @@ namespace QuanLyNhanSu_WPF.Repositories
                 existing.CheckIn = attendance.CheckIn;
                 existing.CheckOut = attendance.CheckOut;
                 existing.Status = attendance.Status;
+                existing.OvertimeHours = attendance.OvertimeHours;
                 existing.Note = attendance.Note;
             }
             await _db.SaveChangesAsync();
