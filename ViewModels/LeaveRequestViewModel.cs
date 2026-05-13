@@ -16,30 +16,64 @@ namespace QuanLyNhanSu_WPF.ViewModels
         private bool _isLoading;
         private LeaveRequest _selectedRequest;
         private int _selectedTabIndex;
-
-        // New request form
-        private string _newLeaveType = "Annual";
+        private string _newLeaveType = QuanLyNhanSu_WPF.Helpers.LeaveTypes.Annual;
         private DateTime _newStartDate = DateTime.Today;
         private DateTime _newEndDate = DateTime.Today;
         private string _newReason;
         private string _approvalNotes;
+        private int _remainingAnnualLeaveDays;
+        private int _requestedLeaveDays = 1;
 
         public bool IsAdmin { get => _isAdmin; set => SetProperty(ref _isAdmin, value); }
         public bool IsLoading { get => _isLoading; set => SetProperty(ref _isLoading, value); }
         public LeaveRequest SelectedRequest { get => _selectedRequest; set => SetProperty(ref _selectedRequest, value); }
         public int SelectedTabIndex { get => _selectedTabIndex; set => SetProperty(ref _selectedTabIndex, value); }
-        public string NewLeaveType { get => _newLeaveType; set => SetProperty(ref _newLeaveType, value); }
-        public DateTime NewStartDate { get => _newStartDate; set => SetProperty(ref _newStartDate, value); }
-        public DateTime NewEndDate { get => _newEndDate; set => SetProperty(ref _newEndDate, value); }
+
+        public string NewLeaveType
+        {
+            get => _newLeaveType;
+            set
+            {
+                if (SetProperty(ref _newLeaveType, value))
+                {
+                    RefreshLeaveSummaryAsync();
+                }
+            }
+        }
+
+        public DateTime NewStartDate
+        {
+            get => _newStartDate;
+            set
+            {
+                if (SetProperty(ref _newStartDate, value))
+                {
+                    RefreshLeaveSummaryAsync();
+                }
+            }
+        }
+
+        public DateTime NewEndDate
+        {
+            get => _newEndDate;
+            set
+            {
+                if (SetProperty(ref _newEndDate, value))
+                {
+                    RefreshLeaveSummaryAsync();
+                }
+            }
+        }
+
         public string NewReason { get => _newReason; set => SetProperty(ref _newReason, value); }
         public string ApprovalNotes { get => _approvalNotes; set => SetProperty(ref _approvalNotes, value); }
+        public int RemainingAnnualLeaveDays { get => _remainingAnnualLeaveDays; set => SetProperty(ref _remainingAnnualLeaveDays, value); }
+        public int RequestedLeaveDays { get => _requestedLeaveDays; set => SetProperty(ref _requestedLeaveDays, value); }
 
         public ObservableCollection<LeaveRequest> AllRequests { get; } = new();
         public ObservableCollection<LeaveRequest> PendingRequests { get; } = new();
         public ObservableCollection<LeaveRequest> MyRequests { get; } = new();
-
-        public ObservableCollection<string> LeaveTypes { get; } = new()
-        { "Annual", "Sick", "Maternity", "Unpaid" };
+        public ObservableCollection<string> LeaveTypes { get; } = new(QuanLyNhanSu_WPF.Helpers.LeaveTypes.All);
 
         public ICommand LoadCommand { get; }
         public ICommand ApproveCommand { get; }
@@ -57,11 +91,8 @@ namespace QuanLyNhanSu_WPF.ViewModels
 
             LoadCommand = new RelayCommand(async _ => await LoadAsync());
             RefreshCommand = new RelayCommand(async _ => await LoadAsync());
-
-            ApproveCommand = new RelayCommand(async _ => await ApproveAsync(),
-                _ => IsAdmin && SelectedRequest?.Status == LeaveStatus.Pending);
-            RejectCommand = new RelayCommand(async _ => await RejectAsync(),
-                _ => IsAdmin && SelectedRequest?.Status == LeaveStatus.Pending);
+            ApproveCommand = new RelayCommand(async _ => await ApproveAsync(), _ => IsAdmin && SelectedRequest?.Status == LeaveStatus.Pending);
+            RejectCommand = new RelayCommand(async _ => await RejectAsync(), _ => IsAdmin && SelectedRequest?.Status == LeaveStatus.Pending);
             SubmitRequestCommand = new RelayCommand(async _ => await SubmitRequestAsync(), _ => !IsAdmin);
 
             Task.Run(LoadAsync);
@@ -78,48 +109,101 @@ namespace QuanLyNhanSu_WPF.ViewModels
                     var pending = await _service.GetPendingAsync();
                     Application.Current?.Dispatcher.Invoke(() =>
                     {
-                        AllRequests.Clear(); foreach (var r in all) AllRequests.Add(r);
-                        PendingRequests.Clear(); foreach (var r in pending) PendingRequests.Add(r);
+                        AllRequests.Clear();
+                        foreach (var r in all)
+                        {
+                            AllRequests.Add(r);
+                        }
+
+                        PendingRequests.Clear();
+                        foreach (var r in pending)
+                        {
+                            PendingRequests.Add(r);
+                        }
                     });
                 }
                 else
                 {
                     var my = await _service.GetMyRequestsAsync();
+                    var employeeId = SessionManager.Instance.CurrentUser?.EmployeeID;
+                    var remaining = employeeId.HasValue ? await _service.CalculateRemainingLeavesAsync(employeeId.Value) : 0;
+
                     Application.Current?.Dispatcher.Invoke(() =>
                     {
-                        MyRequests.Clear(); foreach (var r in my) MyRequests.Add(r);
+                        MyRequests.Clear();
+                        foreach (var r in my)
+                        {
+                            MyRequests.Add(r);
+                        }
+
+                        RemainingAnnualLeaveDays = remaining;
                     });
                 }
+
+                RequestedLeaveDays = _service.CalculateRequestedDays(NewStartDate, NewEndDate);
             }
-            catch (Exception ex) { System.Diagnostics.Debug.WriteLine(ex.Message); }
-            finally { IsLoading = false; }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine(ex.Message);
+            }
+            finally
+            {
+                IsLoading = false;
+            }
         }
 
         private async Task ApproveAsync()
         {
-            if (SelectedRequest == null) return;
+            if (SelectedRequest == null)
+                return;
+
             var user = SessionManager.Instance.CurrentUser;
-            var result = await _service.ApproveLeaveAsync(SelectedRequest.LeaveRequestID, user.UserID, ApprovalNotes ?? "");
-            if (result) { await LoadAsync(); MessageBox.Show("Đã duyệt đơn nghỉ phép.", "Thành công", MessageBoxButton.OK, MessageBoxImage.Information); }
+            var result = await _service.ApproveLeaveAsync(SelectedRequest.LeaveRequestID, user.UserID, ApprovalNotes ?? string.Empty);
+            if (result)
+            {
+                ApprovalNotes = string.Empty;
+                await LoadAsync();
+                MessageBox.Show("Đã duyệt đơn nghỉ phép.", "Thành công", MessageBoxButton.OK, MessageBoxImage.Information);
+            }
+            else
+            {
+                MessageBox.Show("Không thể duyệt đơn đã được xử lý trước đó.", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Warning);
+            }
         }
 
         private async Task RejectAsync()
         {
-            if (SelectedRequest == null) return;
+            if (SelectedRequest == null)
+                return;
+
             if (string.IsNullOrWhiteSpace(ApprovalNotes))
             {
                 MessageBox.Show("Vui lòng nhập lý do từ chối.", "Thiếu thông tin", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
+
             var user = SessionManager.Instance.CurrentUser;
             var result = await _service.RejectLeaveAsync(SelectedRequest.LeaveRequestID, user.UserID, ApprovalNotes);
-            if (result) { await LoadAsync(); MessageBox.Show("Đã từ chối đơn nghỉ phép.", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Information); }
+            if (result)
+            {
+                ApprovalNotes = string.Empty;
+                await LoadAsync();
+                MessageBox.Show("Đã từ chối đơn nghỉ phép.", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Information);
+            }
+            else
+            {
+                MessageBox.Show("Không thể từ chối đơn đã được xử lý trước đó.", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Warning);
+            }
         }
 
         private async Task SubmitRequestAsync()
         {
             var user = SessionManager.Instance.CurrentUser;
-            if (!user.EmployeeID.HasValue) { MessageBox.Show("Tài khoản của bạn chưa được liên kết với nhân viên."); return; }
+            if (!user.EmployeeID.HasValue)
+            {
+                MessageBox.Show("Tài khoản của bạn chưa được liên kết với nhân viên.");
+                return;
+            }
 
             if (string.IsNullOrWhiteSpace(NewReason))
             {
@@ -132,12 +216,30 @@ namespace QuanLyNhanSu_WPF.ViewModels
 
             if (success)
             {
-                NewReason = "";
+                NewReason = string.Empty;
+                OnPropertyChanged(nameof(NewReason));
                 await LoadAsync();
-                MessageBox.Show("Đã gửi đơn nghỉ phép thành công!", "Thành công", MessageBoxButton.OK, MessageBoxImage.Information);
+                MessageBox.Show("Đã gửi đơn nghỉ phép thành công.", "Thành công", MessageBoxButton.OK, MessageBoxImage.Information);
             }
             else
+            {
                 MessageBox.Show(error, "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        private async void RefreshLeaveSummaryAsync()
+        {
+            RequestedLeaveDays = _service.CalculateRequestedDays(NewStartDate, NewEndDate);
+            if (IsAdmin || NewLeaveType != QuanLyNhanSu_WPF.Helpers.LeaveTypes.Annual)
+            {
+                return;
+            }
+
+            var employeeId = SessionManager.Instance.CurrentUser?.EmployeeID;
+            if (employeeId.HasValue)
+            {
+                RemainingAnnualLeaveDays = await _service.CalculateRemainingLeavesAsync(employeeId.Value);
+            }
         }
     }
 }

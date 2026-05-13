@@ -13,11 +13,9 @@ namespace QuanLyNhanSu_WPF.Services
     {
         private readonly EmployeeRepository _empRepo;
         private readonly UserRepository _userRepo;
-        private readonly ApplicationDbContext _db;
 
         public EmployeeService(ApplicationDbContext db)
         {
-            _db = db;
             _empRepo = new EmployeeRepository(db);
             _userRepo = new UserRepository(db);
         }
@@ -43,12 +41,15 @@ namespace QuanLyNhanSu_WPF.Services
 
             if (string.IsNullOrWhiteSpace(employee.Name))
                 return (false, "Tên nhân viên không được để trống.");
+
             if (string.IsNullOrWhiteSpace(employee.Code))
                 return (false, "Mã nhân viên không được để trống.");
 
-            // Sanitize
             employee.Name = employee.Name.Trim();
             employee.Code = employee.Code.Trim().ToUpper();
+
+            if (await _empRepo.ExistsByCodeAsync(employee.Code))
+                return (false, $"Mã nhân viên '{employee.Code}' đã tồn tại.");
 
             await _empRepo.AddAsync(employee);
             await AuditLogger.LogCreateAsync("Employees", employee.EmployeeID.ToString(), employee.Name);
@@ -62,7 +63,15 @@ namespace QuanLyNhanSu_WPF.Services
             if (string.IsNullOrWhiteSpace(employee.Name))
                 return (false, "Tên nhân viên không được để trống.");
 
+            if (string.IsNullOrWhiteSpace(employee.Code))
+                return (false, "Mã nhân viên không được để trống.");
+
             employee.Name = employee.Name.Trim();
+            employee.Code = employee.Code.Trim().ToUpper();
+
+            if (await _empRepo.ExistsByCodeAsync(employee.Code, employee.EmployeeID))
+                return (false, $"Mã nhân viên '{employee.Code}' đã được dùng bởi nhân viên khác.");
+
             await _empRepo.UpdateAsync(employee);
             await AuditLogger.LogUpdateAsync("Employees", employee.EmployeeID.ToString(), null, employee.Name);
             return (true, null);
@@ -76,19 +85,19 @@ namespace QuanLyNhanSu_WPF.Services
             return true;
         }
 
-        /// <summary>Create a login account for an existing employee.</summary>
         public async Task<(bool Success, string Error, string GeneratedPassword)> CreateUserAccountAsync(int employeeId)
         {
             AuthorizationService.Current.CheckPermission(Permissions.Create_User_Account);
 
             var employee = await _empRepo.GetByIdAsync(employeeId);
-            if (employee == null) return (false, "Không tìm thấy nhân viên.", null);
+            if (employee == null)
+                return (false, "Không tìm thấy nhân viên.", null);
 
             var existing = await _userRepo.GetByEmployeeIdAsync(employeeId);
-            if (existing != null) return (false, "Nhân viên này đã có tài khoản.", null);
+            if (existing != null)
+                return (false, "Nhân viên này đã có tài khoản.", null);
 
-            // Generate initial password: code + "123" (user must change on first login)
-            string generatedPwd = employee.Code + "@Abc1";
+            var generatedPwd = employee.Code + "@Abc1";
             PasswordHasher.HashPassword(generatedPwd, out var hash, out var salt);
 
             var user = new User
@@ -106,7 +115,6 @@ namespace QuanLyNhanSu_WPF.Services
             return (true, null, generatedPwd);
         }
 
-        /// <summary>Save photo file to app_data/photos/ and return relative path.</summary>
         public string SavePhoto(string sourceFilePath, int employeeId)
         {
             try

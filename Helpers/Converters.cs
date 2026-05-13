@@ -1,9 +1,9 @@
 using System;
 using System.Globalization;
+using System.IO;
 using System.Windows;
 using System.Windows.Data;
 using System.Windows.Media.Imaging;
-using System.IO;
 
 namespace QuanLyNhanSu_WPF.Helpers
 {
@@ -12,7 +12,7 @@ namespace QuanLyNhanSu_WPF.Helpers
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            bool bVal = value is bool b && b;
+            var bVal = value is bool b && b;
             return bVal ? Visibility.Visible : Visibility.Collapsed;
         }
 
@@ -27,7 +27,7 @@ namespace QuanLyNhanSu_WPF.Helpers
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            bool bVal = value is bool b && b;
+            var bVal = value is bool b && b;
             return bVal ? Visibility.Collapsed : Visibility.Visible;
         }
 
@@ -47,7 +47,6 @@ namespace QuanLyNhanSu_WPF.Helpers
             => !(value is bool b && b);
     }
 
-    /// <summary>Converts a string to Visibility — Collapsed if null or empty.</summary>
     public class NullOrEmptyToVisibilityConverter : IValueConverter
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
@@ -66,6 +65,7 @@ namespace QuanLyNhanSu_WPF.Helpers
                 var parts = param.Split('|');
                 return (value is bool b && b) ? parts[0] : parts[1];
             }
+
             return value?.ToString();
         }
 
@@ -76,7 +76,7 @@ namespace QuanLyNhanSu_WPF.Helpers
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            string path = value as string;
+            var path = value as string;
             if (string.IsNullOrEmpty(path) || !File.Exists(path))
                 return null;
 
@@ -102,7 +102,9 @@ namespace QuanLyNhanSu_WPF.Helpers
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            if (value == null) return null;
+            if (value == null)
+                return null;
+
             return value.ToString() switch
             {
                 "Active" => "Đang làm việc",
@@ -115,6 +117,23 @@ namespace QuanLyNhanSu_WPF.Helpers
                 "Approved" => "Đã duyệt",
                 "Rejected" => "Từ chối",
                 _ => value.ToString()
+            };
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) => throw new NotImplementedException();
+    }
+
+    public class LeaveTypeToVietnameseConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            return value?.ToString() switch
+            {
+                "Annual" => "Phép năm",
+                "Sick" => "Ốm đau",
+                "Maternity" => "Thai sản",
+                "Unpaid" => "Không lương",
+                _ => value?.ToString()
             };
         }
 

@@ -21,13 +21,11 @@ namespace QuanLyNhanSu_WPF.ViewModels
         private ObservableCollection<Employee> _employees = new();
         private Employee _selectedEmployee;
         private Attendance _selectedRecord;
-
-        // Mark attendance form fields (Admin only)
         private DateTime _markDate = DateTime.Today;
         private string _markCheckIn = "08:00";
         private string _markCheckOut = "17:00";
-        private string _markStatus = "Present";
-        private double _markOvertime = 0;
+        private string _markStatus = AttendanceStatuses.Present;
+        private double _markOvertime;
 
         public bool IsAdmin { get => _isAdmin; set => SetProperty(ref _isAdmin, value); }
         public bool IsLoading { get => _isLoading; set => SetProperty(ref _isLoading, value); }
@@ -47,8 +45,7 @@ namespace QuanLyNhanSu_WPF.ViewModels
         public ICommand FilterCommand { get; }
         public ICommand MarkAttendanceCommand { get; }
 
-        public ObservableCollection<string> StatusOptions { get; } = new()
-        { "Có mặt", "Đi muộn", "Vắng mặt", "Nghỉ phép" };
+        public ObservableCollection<string> StatusOptions { get; } = new(AttendanceStatuses.AllDisplayValues);
 
         private readonly AttendanceService _service;
         private readonly EmployeeRepository _empRepo;
@@ -76,9 +73,13 @@ namespace QuanLyNhanSu_WPF.ViewModels
                 Application.Current?.Dispatcher.Invoke(() =>
                 {
                     Employees.Clear();
-                    foreach (var e in emps) Employees.Add(e);
+                    foreach (var e in emps)
+                    {
+                        Employees.Add(e);
+                    }
                 });
             }
+
             await LoadAsync();
         }
 
@@ -87,21 +88,32 @@ namespace QuanLyNhanSu_WPF.ViewModels
             IsLoading = true;
             try
             {
-                int? empId = IsAdmin ? SelectedEmployee?.EmployeeID : null;
+                var empId = IsAdmin ? SelectedEmployee?.EmployeeID : null;
                 var data = await _service.GetAttendanceAsync(empId, FromDate, ToDate);
                 Application.Current?.Dispatcher.Invoke(() =>
                 {
                     Records.Clear();
-                    foreach (var r in data) Records.Add(r);
+                    foreach (var r in data)
+                    {
+                        Records.Add(r);
+                    }
                 });
             }
-            catch (Exception ex) { MessageBox.Show(ex.Message); }
-            finally { IsLoading = false; }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
+            finally
+            {
+                IsLoading = false;
+            }
         }
 
         private async Task MarkAttendanceAsync()
         {
-            if (SelectedEmployee == null) return;
+            if (SelectedEmployee == null)
+                return;
+
             try
             {
                 TimeSpan? checkIn = TimeSpan.TryParse(MarkCheckIn, out var ci) ? ci : null;
@@ -109,10 +121,14 @@ namespace QuanLyNhanSu_WPF.ViewModels
 
                 await _service.MarkAttendanceAsync(
                     SelectedEmployee.EmployeeID, MarkDate, checkIn, checkOut, MarkStatus, MarkOvertime);
+
                 await LoadAsync();
-                MessageBox.Show("Đã chấm công thành công!", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Information);
+                MessageBox.Show("Đã chấm công thành công.", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Information);
             }
-            catch (Exception ex) { MessageBox.Show($"Lỗi: {ex.Message}"); }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Lỗi: {ex.Message}");
+            }
         }
     }
 }

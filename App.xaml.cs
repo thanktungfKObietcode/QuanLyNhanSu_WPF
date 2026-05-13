@@ -1,48 +1,38 @@
+using System.Linq;
 using System.Windows;
 using Microsoft.EntityFrameworkCore;
 using QuanLyNhanSu_WPF.Data;
 using QuanLyNhanSu_WPF.Helpers;
 using QuanLyNhanSu_WPF.Models;
-using System.Linq;
 
 namespace QuanLyNhanSu_WPF
 {
-    /// <summary>
-    /// Interaction logic for App.xaml
-    /// </summary>
     public partial class App : Application
     {
         protected override void OnStartup(StartupEventArgs e)
         {
             base.OnStartup(e);
 
-            // Global Exception Handling
-            this.DispatcherUnhandledException += App_DispatcherUnhandledException;
-
-            // Use SQLite local database file
-            var basePath = System.AppDomain.CurrentDomain.BaseDirectory;
-            var dbPath = System.IO.Path.Combine(basePath, "app_data", "qlns.db");
-            System.IO.Directory.CreateDirectory(System.IO.Path.GetDirectoryName(dbPath)!);
+            DispatcherUnhandledException += App_DispatcherUnhandledException;
 
             var optionsBuilder = new DbContextOptionsBuilder<ApplicationDbContext>();
-            optionsBuilder.UseSqlite($"Data Source={dbPath}");
+            var connectionString = "Server=.\\SQLEXPRESS;Database=QuanLyNhanSuDB;Trusted_Connection=True;TrustServerCertificate=True;";
+            optionsBuilder.UseSqlServer(connectionString);
 
             using var db = new ApplicationDbContext(optionsBuilder.Options);
 
-            // Apply any pending migrations (creates database if it doesn't exist)
             db.Database.Migrate();
 
-            // Đảm bảo schema mới cho công ty truyền thông (Thêm cột nếu chưa có)
-            try { db.Database.ExecuteSqlRaw("ALTER TABLE Salaries ADD COLUMN KPIBonus REAL DEFAULT 0"); } catch { }
-            try { db.Database.ExecuteSqlRaw("ALTER TABLE Salaries ADD COLUMN OTSalary REAL DEFAULT 0"); } catch { }
-            try { db.Database.ExecuteSqlRaw("ALTER TABLE Salaries ADD COLUMN Commission REAL DEFAULT 0"); } catch { }
-            try { db.Database.ExecuteSqlRaw("ALTER TABLE Attendances ADD COLUMN OvertimeHours REAL DEFAULT 0"); } catch { }
-            try { db.Database.ExecuteSqlRaw("ALTER TABLE Employees ADD COLUMN BaseCommissionRate REAL DEFAULT 0"); } catch { }
+            // Backfill columns safely for older SQL Server databases that may predate the current model.
+            try { db.Database.ExecuteSqlRaw("IF COL_LENGTH('Salaries', 'KPIBonus') IS NULL ALTER TABLE Salaries ADD KPIBonus decimal(18,2) NOT NULL CONSTRAINT DF_Salaries_KPIBonus DEFAULT 0"); } catch { }
+            try { db.Database.ExecuteSqlRaw("IF COL_LENGTH('Salaries', 'OTSalary') IS NULL ALTER TABLE Salaries ADD OTSalary decimal(18,2) NOT NULL CONSTRAINT DF_Salaries_OTSalary DEFAULT 0"); } catch { }
+            try { db.Database.ExecuteSqlRaw("IF COL_LENGTH('Salaries', 'Commission') IS NULL ALTER TABLE Salaries ADD Commission decimal(18,2) NOT NULL CONSTRAINT DF_Salaries_Commission DEFAULT 0"); } catch { }
+            try { db.Database.ExecuteSqlRaw("IF COL_LENGTH('Attendances', 'OvertimeHours') IS NULL ALTER TABLE Attendances ADD OvertimeHours float NOT NULL CONSTRAINT DF_Attendances_OvertimeHours DEFAULT 0"); } catch { }
+            try { db.Database.ExecuteSqlRaw("IF COL_LENGTH('Employees', 'BaseCommissionRate') IS NULL ALTER TABLE Employees ADD BaseCommissionRate float NOT NULL CONSTRAINT DF_Employees_BaseCommissionRate DEFAULT 0"); } catch { }
 
-            // Create or reset default admin user
             var admin = db.Users.FirstOrDefault(u => u.Username == "admin");
             PasswordHasher.HashPassword("admin123", out var hash, out var salt);
-            
+
             if (admin == null)
             {
                 admin = new User
@@ -58,16 +48,15 @@ namespace QuanLyNhanSu_WPF
             }
             else
             {
-                // Reset password and unlock account
                 admin.PasswordHash = hash;
                 admin.Salt = salt;
                 admin.FailedLoginAttempts = 0;
                 admin.LockoutEnd = null;
                 db.Users.Update(admin);
             }
+
             db.SaveChanges();
 
-            // Seed các chức vụ ngành truyền thông nếu chưa có
             if (!db.Positions.Any(p => p.PosName == "Sale Media"))
             {
                 db.Positions.AddRange(
@@ -87,20 +76,20 @@ namespace QuanLyNhanSu_WPF
         {
             var loginView = new Views.LoginView();
             var vm = new ViewModels.LoginViewModel();
-            
+
             vm.LoginSucceeded += () =>
             {
                 var mainWindow = new MainWindow();
                 var mainVm = new ViewModels.MainViewModel();
-                
+
                 mainVm.LogoutRequested += () =>
                 {
                     mainWindow.Close();
                     ShowLoginWindow();
                 };
-                
+
                 mainWindow.DataContext = mainVm;
-                Application.Current.MainWindow = mainWindow;
+                Current.MainWindow = mainWindow;
                 mainWindow.Show();
                 loginView.Close();
             };
@@ -111,13 +100,14 @@ namespace QuanLyNhanSu_WPF
 
         private void App_DispatcherUnhandledException(object sender, System.Windows.Threading.DispatcherUnhandledExceptionEventArgs e)
         {
-            // Log the error (could use a logging framework here)
             System.Diagnostics.Debug.WriteLine($"CRITICAL ERROR: {e.Exception}");
-            
-            MessageBox.Show("Đã xảy ra lỗi không mong muốn. Ứng dụng sẽ được ghi lại nhật ký lỗi.", 
-                            "Lỗi hệ thống", MessageBoxButton.OK, MessageBoxImage.Error);
-            
-            // Prevent application from crashing
+
+            MessageBox.Show(
+                "Đã xảy ra lỗi không mong muốn. Ứng dụng sẽ được ghi lại nhật ký lỗi.",
+                "Lỗi hệ thống",
+                MessageBoxButton.OK,
+                MessageBoxImage.Error);
+
             e.Handled = true;
         }
     }

@@ -16,7 +16,7 @@
 
     <Grid>
         <!-- Background with Premium Gradient -->
-        <Border CornerRadius="0">
+        <Border CornerRadius="0" Margin="-510,-109,-510,-110">
             <Border.Background>
                 <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
                     <GradientStop Color="#0F172A" Offset="0"/> <!-- Navy Dark -->
@@ -44,7 +44,7 @@
                 </Grid.RowDefinitions>
 
                 <!-- Header Actions -->
-                <Button Style="{StaticResource MaterialDesignFlatButton}" 
+                <Button Style="{DynamicResource MaterialDesignFlatButton}" 
                         Content="✕" Width="40" Height="40" Padding="0" Click="CloseButton_Click"
                         HorizontalAlignment="Right" Margin="16" Foreground="#6B7280"/>
 
@@ -95,7 +95,7 @@
                             materialDesign:ButtonAssist.CornerRadius="16" Margin="0,16,0,0"
                             Background="#4F46E5" BorderBrush="#4F46E5" Foreground="White">
                         <Button.Style>
-                            <Style TargetType="Button" BasedOn="{StaticResource MaterialDesignRaisedButton}">
+                            <Style TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
                                 <Style.Triggers>
                                     <DataTrigger Binding="{Binding IsBusy}" Value="True">
                                         <Setter Property="IsEnabled" Value="False"/>

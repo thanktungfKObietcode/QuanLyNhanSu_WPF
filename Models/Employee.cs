@@ -68,5 +68,8 @@ namespace QuanLyNhanSu_WPF.Models
 
         // Mức hoa hồng cơ bản (%) cho nhân viên Sales
         public double BaseCommissionRate { get; set; } = 0;
+        
+        [NotMapped]
+        public bool HasAccount { get; set; }
     }
 }

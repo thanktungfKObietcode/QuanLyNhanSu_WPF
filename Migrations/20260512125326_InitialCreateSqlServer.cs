@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace QuanLyNhanSu_WPF.Migrations
 {
     /// <inheritdoc />
-    public partial class AddEmployeeDetails : Migration
+    public partial class InitialCreateSqlServer : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -15,11 +15,11 @@ namespace QuanLyNhanSu_WPF.Migrations
                 name: "Positions",
                 columns: table => new
                 {
-                    PositionID = table.Column<int>(type: "INTEGER", nullable: false)
-                        .Annotation("Sqlite:Autoincrement", true),
-                    PosCode = table.Column<string>(type: "TEXT", maxLength: 50, nullable: true),
-                    PosName = table.Column<string>(type: "TEXT", maxLength: 200, nullable: true),
-                    BaseSalary = table.Column<decimal>(type: "TEXT", nullable: false)
+                    PositionID = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    PosCode = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true),
+                    PosName = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: true),
+                    BaseSalary = table.Column<decimal>(type: "decimal(18,2)", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -30,14 +30,15 @@ namespace QuanLyNhanSu_WPF.Migrations
                 name: "Attendances",
                 columns: table => new
                 {
-                    AttendanceID = table.Column<int>(type: "INTEGER", nullable: false)
-                        .Annotation("Sqlite:Autoincrement", true),
-                    EmployeeID = table.Column<int>(type: "INTEGER", nullable: false),
-                    Date = table.Column<DateTime>(type: "TEXT", nullable: false),
-                    CheckIn = table.Column<TimeSpan>(type: "TEXT", nullable: true),
-                    CheckOut = table.Column<TimeSpan>(type: "TEXT", nullable: true),
-                    Status = table.Column<string>(type: "TEXT", maxLength: 50, nullable: true),
-                    Note = table.Column<string>(type: "TEXT", maxLength: 500, nullable: true)
+                    AttendanceID = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    EmployeeID = table.Column<int>(type: "int", nullable: false),
+                    Date = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    CheckIn = table.Column<TimeSpan>(type: "time", nullable: true),
+                    CheckOut = table.Column<TimeSpan>(type: "time", nullable: true),
+                    Status = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true),
+                    Note = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
+                    OvertimeHours = table.Column<double>(type: "float", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -48,15 +49,15 @@ namespace QuanLyNhanSu_WPF.Migrations
                 name: "AuditLogs",
                 columns: table => new
                 {
-                    LogID = table.Column<int>(type: "INTEGER", nullable: false)
-                        .Annotation("Sqlite:Autoincrement", true),
-                    UserID = table.Column<int>(type: "INTEGER", nullable: true),
-                    Action = table.Column<string>(type: "TEXT", nullable: true),
-                    TableName = table.Column<string>(type: "TEXT", nullable: true),
-                    RecordID = table.Column<string>(type: "TEXT", nullable: true),
-                    OldValue = table.Column<string>(type: "TEXT", nullable: true),
-                    NewValue = table.Column<string>(type: "TEXT", nullable: true),
-                    Timestamp = table.Column<DateTime>(type: "TEXT", nullable: false)
+                    LogID = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    UserID = table.Column<int>(type: "int", nullable: true),
+                    Action = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    TableName = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    RecordID = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    OldValue = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    NewValue = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Timestamp = table.Column<DateTime>(type: "datetime2", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -67,11 +68,11 @@ namespace QuanLyNhanSu_WPF.Migrations
                 name: "Departments",
                 columns: table => new
                 {
-                    DepartmentID = table.Column<int>(type: "INTEGER", nullable: false)
-                        .Annotation("Sqlite:Autoincrement", true),
-                    DeptCode = table.Column<string>(type: "TEXT", maxLength: 50, nullable: true),
-                    DeptName = table.Column<string>(type: "TEXT", maxLength: 200, nullable: true),
-                    ManagerID = table.Column<int>(type: "INTEGER", nullable: true)
+                    DepartmentID = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    DeptCode = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true),
+                    DeptName = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: true),
+                    ManagerID = table.Column<int>(type: "int", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -82,23 +83,24 @@ namespace QuanLyNhanSu_WPF.Migrations
                 name: "Employees",
                 columns: table => new
                 {
-                    EmployeeID = table.Column<int>(type: "INTEGER", nullable: false)
-                        .Annotation("Sqlite:Autoincrement", true),
-                    Code = table.Column<string>(type: "TEXT", maxLength: 20, nullable: false),
-                    Name = table.Column<string>(type: "TEXT", maxLength: 200, nullable: false),
-                    DateOfBirth = table.Column<DateTime>(type: "TEXT", nullable: false),
-                    Gender = table.Column<string>(type: "TEXT", maxLength: 10, nullable: true),
-                    PhoneNumber = table.Column<string>(type: "TEXT", maxLength: 20, nullable: true),
-                    Email = table.Column<string>(type: "TEXT", maxLength: 200, nullable: true),
-                    Address = table.Column<string>(type: "TEXT", maxLength: 500, nullable: true),
-                    HireDate = table.Column<DateTime>(type: "TEXT", nullable: false),
-                    Status = table.Column<int>(type: "INTEGER", nullable: false),
-                    EmploymentType = table.Column<int>(type: "INTEGER", nullable: false),
-                    ExperienceDays = table.Column<int>(type: "INTEGER", nullable: false),
-                    Degree = table.Column<string>(type: "TEXT", nullable: true),
-                    DepartmentID = table.Column<int>(type: "INTEGER", nullable: true),
-                    PositionID = table.Column<int>(type: "INTEGER", nullable: true),
-                    Photo = table.Column<string>(type: "TEXT", maxLength: 500, nullable: true)
+                    EmployeeID = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Code = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false),
+                    Name = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: false),
+                    DateOfBirth = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    Gender = table.Column<string>(type: "nvarchar(10)", maxLength: 10, nullable: true),
+                    PhoneNumber = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: true),
+                    Email = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: true),
+                    Address = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
+                    HireDate = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    Status = table.Column<int>(type: "int", nullable: false),
+                    EmploymentType = table.Column<int>(type: "int", nullable: false),
+                    ExperienceDays = table.Column<int>(type: "int", nullable: false),
+                    Degree = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    DepartmentID = table.Column<int>(type: "int", nullable: true),
+                    PositionID = table.Column<int>(type: "int", nullable: true),
+                    Photo = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
+                    BaseCommissionRate = table.Column<double>(type: "float", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -119,17 +121,20 @@ namespace QuanLyNhanSu_WPF.Migrations
                 name: "Salaries",
                 columns: table => new
                 {
-                    SalaryID = table.Column<int>(type: "INTEGER", nullable: false)
-                        .Annotation("Sqlite:Autoincrement", true),
-                    EmployeeID = table.Column<int>(type: "INTEGER", nullable: false),
-                    Month = table.Column<int>(type: "INTEGER", nullable: false),
-                    Year = table.Column<int>(type: "INTEGER", nullable: false),
-                    BaseSalary = table.Column<decimal>(type: "TEXT", nullable: false),
-                    Allowances = table.Column<decimal>(type: "TEXT", nullable: false),
-                    Bonus = table.Column<decimal>(type: "TEXT", nullable: false),
-                    Deductions = table.Column<decimal>(type: "TEXT", nullable: false),
-                    NetSalary = table.Column<decimal>(type: "TEXT", nullable: false),
-                    PaidDate = table.Column<DateTime>(type: "TEXT", nullable: true)
+                    SalaryID = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    EmployeeID = table.Column<int>(type: "int", nullable: false),
+                    Month = table.Column<int>(type: "int", nullable: false),
+                    Year = table.Column<int>(type: "int", nullable: false),
+                    BaseSalary = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    Allowances = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    KPIBonus = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    OTSalary = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    Commission = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    Bonus = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    Deductions = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    NetSalary = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    PaidDate = table.Column<DateTime>(type: "datetime2", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -146,18 +151,18 @@ namespace QuanLyNhanSu_WPF.Migrations
                 name: "Users",
                 columns: table => new
                 {
-                    UserID = table.Column<int>(type: "INTEGER", nullable: false)
-                        .Annotation("Sqlite:Autoincrement", true),
-                    Username = table.Column<string>(type: "TEXT", maxLength: 100, nullable: false),
-                    PasswordHash = table.Column<string>(type: "TEXT", nullable: false),
-                    Salt = table.Column<string>(type: "TEXT", nullable: false),
-                    EmployeeID = table.Column<int>(type: "INTEGER", nullable: true),
-                    Role = table.Column<int>(type: "INTEGER", nullable: false),
-                    IsActive = table.Column<bool>(type: "INTEGER", nullable: false),
-                    CreatedDate = table.Column<DateTime>(type: "TEXT", nullable: false),
-                    LastLogin = table.Column<DateTime>(type: "TEXT", nullable: true),
-                    FailedLoginAttempts = table.Column<int>(type: "INTEGER", nullable: false),
-                    LockoutEnd = table.Column<DateTime>(type: "TEXT", nullable: true)
+                    UserID = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Username = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    PasswordHash = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Salt = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    EmployeeID = table.Column<int>(type: "int", nullable: true),
+                    Role = table.Column<int>(type: "int", nullable: false),
+                    IsActive = table.Column<bool>(type: "bit", nullable: false),
+                    CreatedDate = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    LastLogin = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    FailedLoginAttempts = table.Column<int>(type: "int", nullable: false),
+                    LockoutEnd = table.Column<DateTime>(type: "datetime2", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -174,18 +179,18 @@ namespace QuanLyNhanSu_WPF.Migrations
                 name: "LeaveRequests",
                 columns: table => new
                 {
-                    LeaveRequestID = table.Column<int>(type: "INTEGER", nullable: false)
-                        .Annotation("Sqlite:Autoincrement", true),
-                    EmployeeID = table.Column<int>(type: "INTEGER", nullable: false),
-                    LeaveType = table.Column<string>(type: "TEXT", maxLength: 100, nullable: false),
-                    StartDate = table.Column<DateTime>(type: "TEXT", nullable: false),
-                    EndDate = table.Column<DateTime>(type: "TEXT", nullable: false),
-                    Reason = table.Column<string>(type: "TEXT", maxLength: 1000, nullable: true),
-                    Status = table.Column<int>(type: "INTEGER", nullable: false),
-                    ApprovedByUserID = table.Column<int>(type: "INTEGER", nullable: true),
-                    ApprovedDate = table.Column<DateTime>(type: "TEXT", nullable: true),
-                    ApprovalNote = table.Column<string>(type: "TEXT", maxLength: 500, nullable: true),
-                    CreatedDate = table.Column<DateTime>(type: "TEXT", nullable: false)
+                    LeaveRequestID = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    EmployeeID = table.Column<int>(type: "int", nullable: false),
+                    LeaveType = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    StartDate = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    EndDate = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    Reason = table.Column<string>(type: "nvarchar(1000)", maxLength: 1000, nullable: true),
+                    Status = table.Column<int>(type: "int", nullable: false),
+                    ApprovedByUserID = table.Column<int>(type: "int", nullable: true),
+                    ApprovedDate = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    ApprovalNote = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
+                    CreatedDate = table.Column<DateTime>(type: "datetime2", nullable: false)
                 },
                 constraints: table =>
                 {

@@ -5,12 +5,11 @@ using System.Threading.Tasks;
 using System.Windows.Input;
 using LiveCharts;
 using LiveCharts.Wpf;
+using Microsoft.EntityFrameworkCore;
 using QuanLyNhanSu_WPF.Data;
 using QuanLyNhanSu_WPF.Helpers;
 using QuanLyNhanSu_WPF.Models;
 using QuanLyNhanSu_WPF.Repositories;
-using QuanLyNhanSu_WPF.Services;
-using Microsoft.EntityFrameworkCore;
 
 namespace QuanLyNhanSu_WPF.ViewModels
 {
@@ -25,6 +24,8 @@ namespace QuanLyNhanSu_WPF.ViewModels
         private bool _isLoading;
         private string[] _attendanceTrendLabels;
         private string[] _leaveStatusLabels;
+        private DateTime _lastUpdated;
+        private readonly System.Timers.Timer _autoRefreshTimer;
 
         public int TotalEmployees { get => _totalEmployees; set => SetProperty(ref _totalEmployees, value); }
         public int TotalDepartments { get => _totalDepartments; set => SetProperty(ref _totalDepartments, value); }
@@ -36,6 +37,7 @@ namespace QuanLyNhanSu_WPF.ViewModels
         public Func<double, string> YFormatter { get; set; } = value => value.ToString("N0") + " ₫";
         public string[] AttendanceTrendLabels { get => _attendanceTrendLabels; set => SetProperty(ref _attendanceTrendLabels, value); }
         public string[] LeaveStatusLabels { get => _leaveStatusLabels; set => SetProperty(ref _leaveStatusLabels, value); }
+        public DateTime LastUpdated { get => _lastUpdated; set => SetProperty(ref _lastUpdated, value); }
 
         public ObservableCollection<AuditLog> RecentActivities { get; } = new();
         public ObservableCollection<Employee> UpcomingBirthdays { get; } = new();
@@ -47,20 +49,11 @@ namespace QuanLyNhanSu_WPF.ViewModels
 
         public ICommand RefreshCommand { get; }
 
-        // Events for card navigation
         public event Action NavigateToEmployees;
         public event Action NavigateToDepartments;
         public event Action NavigateToLeaves;
         public event Action NavigateToAttendance;
 
-        private DateTime _lastUpdated;
-        public DateTime LastUpdated
-        {
-            get => _lastUpdated;
-            set => SetProperty(ref _lastUpdated, value);
-        }
-
-        private System.Timers.Timer _autoRefreshTimer;
         public AdminDashboardViewModel()
         {
             RefreshCommand = new RelayCommand(async _ => await LoadStatistics());
@@ -68,7 +61,7 @@ namespace QuanLyNhanSu_WPF.ViewModels
             LeaveStatusLabels = Array.Empty<string>();
 
             _autoRefreshTimer = new System.Timers.Timer(5 * 60 * 1000);
-            _autoRefreshTimer.Elapsed += async (s, e) => await LoadStatistics();
+            _autoRefreshTimer.Elapsed += async (_, _) => await LoadStatistics();
             _autoRefreshTimer.AutoReset = true;
             _autoRefreshTimer.Start();
 
@@ -79,6 +72,7 @@ namespace QuanLyNhanSu_WPF.ViewModels
         {
             IsLoading = true;
             LastUpdated = DateTime.Now;
+
             try
             {
                 var options = DbContextFactory.CreateOptions();
@@ -87,64 +81,88 @@ namespace QuanLyNhanSu_WPF.ViewModels
                 var empRepo = new EmployeeRepository(db);
                 var attRepo = new AttendanceRepository(db);
                 var leaveRepo = new LeaveRequestRepository(db);
+                var today = DateTime.Today;
 
                 TotalEmployees = await empRepo.GetActiveCountAsync();
-                TotalDepartments = db.Departments.Count();
+                TotalDepartments = await db.Departments.CountAsync();
                 PendingLeaveRequests = await leaveRepo.GetPendingCountAsync();
                 EmployeesPresent = await attRepo.GetPresentTodayCountAsync();
                 EmployeesOnLeave = await attRepo.GetOnLeaveCountAsync();
-                MonthlyAttendanceRate = await attRepo.GetMonthlyAttendanceRateAsync(DateTime.Today.Month, DateTime.Today.Year);
+                MonthlyAttendanceRate = await attRepo.GetMonthlyAttendanceRateAsync(today.Month, today.Year);
 
-                // Recent activities (last 10 audit logs)
                 var logs = await db.AuditLogs
                     .OrderByDescending(l => l.Timestamp)
                     .Take(10)
                     .ToListAsync();
 
-                System.Windows.Application.Current?.Dispatcher.Invoke(() =>
-                {
-                    RecentActivities.Clear();
-                    foreach (var log in logs) RecentActivities.Add(log);
-                });
-
-                var todayMonth = DateTime.Today.Month;
-                var todayYear = DateTime.Today.Year;
-
-                // Upcoming birthdays this month
                 var birthdays = await empRepo.GetBirthdaysThisMonthAsync();
-
-                // Upcoming work anniversaries this month
                 var anniversaries = await db.Employees
-                    .Where(e => e.Status == EmployeeStatus.Active && e.HireDate.Month == todayMonth)
+                    .Where(e => e.Status == EmployeeStatus.Active && e.HireDate.Month == today.Month)
                     .OrderBy(e => e.HireDate.Day)
                     .ToListAsync();
 
-                // Attendance trend last 7 days
-                var last7 = await attRepo.GetLast7DaysAllAsync();
+                var last7 = (await attRepo.GetLast7DaysAllAsync()).ToList();
                 var labels = new string[7];
                 var presentCounts = new int[7];
-                for (int i = 0; i < 7; i++)
+                for (var i = 0; i < 7; i++)
                 {
-                    var d = DateTime.Today.AddDays(-(6 - i));
-                    labels[i] = d.ToString("ddd dd/MM");
-                    presentCounts[i] = last7.Count(a => a.Date.Date == d.Date && (a.Status == "Có mặt" || a.Status == "Đi muộn"));
+                    var day = today.AddDays(-(6 - i));
+                    labels[i] = day.ToString("ddd dd/MM");
+                    presentCounts[i] = last7.Count(a => a.Date.Date == day.Date && AttendanceStatuses.IsPresentOrLate(a.Status));
                 }
 
-                var salaries = await db.Salaries.Include(s => s.Employee)
-                    .Where(s => s.Month == todayMonth && s.Year == todayYear)
+                var salaries = await db.Salaries
+                    .Include(s => s.Employee)
+                    .Where(s => s.Month == today.Month && s.Year == today.Year)
                     .ToListAsync();
-                var depts = await db.Departments.Include(d => d.Manager).ToListAsync();
+
+                var departments = await db.Departments
+                    .Include(d => d.Manager)
+                    .ToListAsync();
+
+                var departmentHeadcounts = departments
+                    .Select(dept => new
+                    {
+                        DeptName = dept.DeptName,
+                        Count = db.Employees.Count(e => e.DepartmentID == dept.DepartmentID && e.Status == EmployeeStatus.Active)
+                    })
+                    .Where(x => x.Count > 0)
+                    .ToList();
+
+                var departmentBudgets = departments
+                    .Select(dept => new
+                    {
+                        DeptName = dept.DeptName,
+                        TotalBudget = salaries
+                            .Where(s => s.Employee != null && s.Employee.DepartmentID == dept.DepartmentID)
+                            .Sum(s => s.NetSalary)
+                    })
+                    .Where(x => x.TotalBudget > 0)
+                    .ToList();
+
+                var approved = await db.LeaveRequests.CountAsync(l => l.Status == LeaveStatus.Approved);
+                var pending = await db.LeaveRequests.CountAsync(l => l.Status == LeaveStatus.Pending);
+                var rejected = await db.LeaveRequests.CountAsync(l => l.Status == LeaveStatus.Rejected);
 
                 System.Windows.Application.Current?.Dispatcher.Invoke(() =>
                 {
                     RecentActivities.Clear();
-                    foreach (var log in logs) RecentActivities.Add(log);
+                    foreach (var log in logs)
+                    {
+                        RecentActivities.Add(log);
+                    }
 
                     UpcomingBirthdays.Clear();
-                    foreach (var emp in birthdays) UpcomingBirthdays.Add(emp);
+                    foreach (var emp in birthdays)
+                    {
+                        UpcomingBirthdays.Add(emp);
+                    }
 
                     UpcomingAnniversaries.Clear();
-                    foreach (var emp in anniversaries) UpcomingAnniversaries.Add(emp);
+                    foreach (var emp in anniversaries)
+                    {
+                        UpcomingAnniversaries.Add(emp);
+                    }
 
                     AttendanceTrendLabels = labels;
                     AttendanceTrendSeries.Clear();
@@ -156,41 +174,38 @@ namespace QuanLyNhanSu_WPF.ViewModels
                         StrokeThickness = 3
                     });
 
-                    // Department distribution
                     DepartmentDistributionSeries.Clear();
-                    var depts = db.Departments.Include(d => d.Manager).ToList();
-                    foreach (var dept in depts)
+                    foreach (var dept in departmentHeadcounts)
                     {
-                        var count = db.Employees.Count(e => e.DepartmentID == dept.DepartmentID && e.Status == EmployeeStatus.Active);
-                        if (count > 0)
-                            DepartmentDistributionSeries.Add(new PieSeries { Title = dept.DeptName ?? "Khác", Values = new ChartValues<int> { count } });
+                        DepartmentDistributionSeries.Add(new PieSeries
+                        {
+                            Title = dept.DeptName ?? "Khác",
+                            Values = new ChartValues<int> { dept.Count }
+                        });
                     }
+
                     if (!DepartmentDistributionSeries.Any())
                     {
-                        DepartmentDistributionSeries.Add(new PieSeries { Title = "Chưa có dữ liệu", Values = new ChartValues<int> { 1 } });
+                        DepartmentDistributionSeries.Add(new PieSeries
+                        {
+                            Title = "Chưa có dữ liệu",
+                            Values = new ChartValues<int> { 1 }
+                        });
                     }
 
-                    // Salary Budget Distribution
                     BudgetDistributionSeries.Clear();
-                    foreach (var dept in depts)
+                    foreach (var dept in departmentBudgets)
                     {
-                        var totalBudget = salaries
-                            .Where(s => s.Employee.DepartmentID == dept.DepartmentID)
-                            .Sum(s => s.NetSalary);
-                        if (totalBudget > 0)
-                            BudgetDistributionSeries.Add(new ColumnSeries { 
-                                Title = dept.DeptName, 
-                                Values = new ChartValues<decimal> { totalBudget },
-                                DataLabels = true
-                            });
+                        BudgetDistributionSeries.Add(new ColumnSeries
+                        {
+                            Title = dept.DeptName,
+                            Values = new ChartValues<decimal> { dept.TotalBudget },
+                            DataLabels = true
+                        });
                     }
 
-                    // Leave status
                     LeaveStatusLabels = new[] { "Đã duyệt", "Chờ duyệt", "Từ chối" };
                     LeaveStatusSeries.Clear();
-                    int approved = db.LeaveRequests.Count(l => l.Status == LeaveStatus.Approved);
-                    int pending = db.LeaveRequests.Count(l => l.Status == LeaveStatus.Pending);
-                    int rejected = db.LeaveRequests.Count(l => l.Status == LeaveStatus.Rejected);
                     LeaveStatusSeries.Add(new ColumnSeries { Title = "Đã duyệt", Values = new ChartValues<int> { approved } });
                     LeaveStatusSeries.Add(new ColumnSeries { Title = "Chờ duyệt", Values = new ChartValues<int> { pending } });
                     LeaveStatusSeries.Add(new ColumnSeries { Title = "Từ chối", Values = new ChartValues<int> { rejected } });

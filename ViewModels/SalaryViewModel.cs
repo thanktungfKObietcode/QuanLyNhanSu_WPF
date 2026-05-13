@@ -158,7 +158,7 @@ namespace QuanLyNhanSu_WPF.ViewModels
         private async Task LoadMyHistoryAsync()
         {
             var user = SessionManager.Instance.CurrentUser;
-            if (!user.EmployeeID.HasValue) return;
+            if (user == null || !user.EmployeeID.HasValue) return;
             try
             {
                 var history = await _salaryService.GetSalaryHistoryAsync(user.EmployeeID.Value);

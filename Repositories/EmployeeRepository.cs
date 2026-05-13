@@ -21,19 +21,27 @@ namespace QuanLyNhanSu_WPF.Repositories
                 .FirstOrDefaultAsync(e => e.EmployeeID == id);
 
         public async Task<IEnumerable<Employee>> GetAllAsync()
-            => await _db.Employees
+        {
+            var list = await _db.Employees
                 .Include(e => e.Department)
                 .Include(e => e.Position)
                 .OrderBy(e => e.Name)
                 .ToListAsync();
+            await LoadAccountStatus(list);
+            return list;
+        }
 
         public async Task<IEnumerable<Employee>> GetActiveAsync()
-            => await _db.Employees
+        {
+            var list = await _db.Employees
                 .Include(e => e.Department)
                 .Include(e => e.Position)
                 .Where(e => e.Status == EmployeeStatus.Active)
                 .OrderBy(e => e.Name)
                 .ToListAsync();
+            await LoadAccountStatus(list);
+            return list;
+        }
 
         public async Task<IEnumerable<Employee>> SearchAsync(string keyword)
         {
@@ -41,7 +49,7 @@ namespace QuanLyNhanSu_WPF.Repositories
                 return await GetAllAsync();
 
             keyword = keyword.Trim().ToLower();
-            return await _db.Employees
+            var list = await _db.Employees
                 .Include(e => e.Department)
                 .Include(e => e.Position)
                 .Where(e => e.Name.ToLower().Contains(keyword)
@@ -49,6 +57,17 @@ namespace QuanLyNhanSu_WPF.Repositories
                          || (e.Email != null && e.Email.ToLower().Contains(keyword)))
                 .OrderBy(e => e.Name)
                 .ToListAsync();
+            await LoadAccountStatus(list);
+            return list;
+        }
+
+        private async Task LoadAccountStatus(IEnumerable<Employee> employees)
+        {
+            var userEmployeeIds = await _db.Users.Where(u => u.EmployeeID.HasValue).Select(u => u.EmployeeID.Value).ToListAsync();
+            foreach (var emp in employees)
+            {
+                emp.HasAccount = userEmployeeIds.Contains(emp.EmployeeID);
+            }
         }
 
         public async Task<IEnumerable<Employee>> GetBirthdaysThisMonthAsync()
@@ -62,6 +81,19 @@ namespace QuanLyNhanSu_WPF.Repositories
 
         public async Task<int> GetActiveCountAsync()
             => await _db.Employees.CountAsync(e => e.Status == EmployeeStatus.Active);
+
+        public async Task<bool> ExistsByCodeAsync(string code, int? excludeEmployeeId = null)
+        {
+            if (string.IsNullOrWhiteSpace(code))
+            {
+                return false;
+            }
+
+            var normalizedCode = code.Trim().ToUpper();
+            return await _db.Employees.AnyAsync(e =>
+                e.Code.ToUpper() == normalizedCode &&
+                (!excludeEmployeeId.HasValue || e.EmployeeID != excludeEmployeeId.Value));
+        }
 
         public async Task AddAsync(Employee employee)
         {

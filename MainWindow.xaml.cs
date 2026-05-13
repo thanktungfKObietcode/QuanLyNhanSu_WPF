@@ -11,7 +11,6 @@ namespace QuanLyNhanSu_WPF
         public MainWindow()
         {
             InitializeComponent();
-            DataContext = new MainViewModel();
         }
     }
 }

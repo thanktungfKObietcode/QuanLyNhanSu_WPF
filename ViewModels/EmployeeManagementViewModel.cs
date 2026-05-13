@@ -66,7 +66,7 @@ namespace QuanLyNhanSu_WPF.ViewModels
                 _ => CanEdit && SelectedEmployee != null);
 
             DeleteCommand = new RelayCommand(async _ => await DeactivateAsync(), _ => CanDelete && SelectedEmployee != null);
-            CreateUserAccountCommand = new RelayCommand(async _ => await CreateUserAccountAsync(), _ => SelectedEmployee != null);
+            CreateUserAccountCommand = new RelayCommand(async param => await CreateUserAccountAsync(param as Employee));
             ViewDetailsCommand = new RelayCommand(_ => { if (SelectedEmployee != null) ViewDetailsRequested?.Invoke(SelectedEmployee); });
 
             Task.Run(LoadEmployeesAsync);
@@ -85,7 +85,8 @@ namespace QuanLyNhanSu_WPF.ViewModels
                 ws.Cell(1, 6).Value = "Email";
                 ws.Cell(1, 7).Value = "Phòng ban";
                 ws.Cell(1, 8).Value = "Chức vụ";
-                ws.Cell(1, 9).Value = "Trạng thái";
+                ws.Cell(1, 9).Value = "Tài khoản";
+                ws.Cell(1, 10).Value = "Trạng thái";
 
                 int row = 2;
                 foreach (var emp in data)
@@ -98,7 +99,8 @@ namespace QuanLyNhanSu_WPF.ViewModels
                     ws.Cell(row, 6).Value = emp.Email;
                     ws.Cell(row, 7).Value = emp.Department?.DeptName;
                     ws.Cell(row, 8).Value = emp.Position?.PosName;
-                    ws.Cell(row, 9).Value = emp.Status.ToString();
+                    ws.Cell(row, 9).Value = emp.HasAccount ? "Đã có" : "Chưa có";
+                    ws.Cell(row, 10).Value = emp.Status.ToString();
                     row++;
                 }
             });
@@ -159,14 +161,28 @@ namespace QuanLyNhanSu_WPF.ViewModels
             catch (Exception ex) { ErrorOccurred?.Invoke(ex.Message); }
         }
 
-        private async Task CreateUserAccountAsync()
+        private async Task CreateUserAccountAsync(Employee emp)
         {
-            if (SelectedEmployee == null) return;
+            var target = emp ?? SelectedEmployee;
+            if (target == null) return;
+
+            var confirm = MessageBox.Show(
+                $"Cấp tài khoản đăng nhập cho nhân viên {target.Name}?\nTên đăng nhập sẽ là: {target.Code.ToLower()}",
+                "Xác nhận", MessageBoxButton.YesNo, MessageBoxImage.Question);
+            
+            if (confirm != MessageBoxResult.Yes) return;
+
             try
             {
-                var (success, error, pwd) = await _service.CreateUserAccountAsync(SelectedEmployee.EmployeeID);
+                var (success, error, pwd) = await _service.CreateUserAccountAsync(target.EmployeeID);
                 if (success)
-                    UserAccountCreated?.Invoke($"Tạo tài khoản thành công!\nTên đăng nhập: {SelectedEmployee.Code.ToLower()}\nMật khẩu: {pwd}");
+                {
+                    await LoadEmployeesAsync();
+                    UserAccountCreated?.Invoke($"Tạo tài khoản thành công!\n\n" +
+                        $"Tên đăng nhập: {target.Code.ToLower()}\n" +
+                        $"Mật khẩu mặc định: {pwd}\n\n" +
+                        $"Hãy cung cấp thông tin này cho nhân viên.");
+                }
                 else
                     ErrorOccurred?.Invoke(error);
             }

@@ -7,6 +7,7 @@
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
                 <materialDesign:BundledTheme BaseTheme="Light" PrimaryColor="Indigo" SecondaryColor="Purple" />
+                <ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesign2.Defaults.xaml" />
                 <ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesign3.Defaults.xaml" />
             </ResourceDictionary.MergedDictionaries>
 
@@ -19,9 +20,9 @@
             <Color x:Key="SurfaceColor">#FFFFFF</Color>
             <Color x:Key="BackgroundColor">#F8FAFC</Color>
             
-            <!-- 2. Brushes (Must be defined before Styles) -->
-            <SolidColorBrush x:Key="PrimaryBrush" Color="{StaticResource PrimaryColor}"/>
-            <SolidColorBrush x:Key="BackgroundBrush" Color="{StaticResource BackgroundColor}"/>
+            <!-- 2. Brushes -->
+            <SolidColorBrush x:Key="PrimaryBrush" Color="#6366F1"/>
+            <SolidColorBrush x:Key="BackgroundBrush" Color="#F8FAFC"/>
             <SolidColorBrush x:Key="TextPrimary" Color="#1E293B"/>
             <SolidColorBrush x:Key="TextSecondary" Color="#64748B"/>
             <SolidColorBrush x:Key="TextOnPrimary" Color="White"/>
@@ -35,7 +36,7 @@
             <!-- 3. Global Styles -->
             <Style TargetType="TextBlock">
                 <Setter Property="FontFamily" Value="Segoe UI Semibold"/>
-                <Setter Property="Foreground" Value="{StaticResource TextPrimary}"/>
+                <Setter Property="Foreground" Value="{DynamicResource TextPrimary}"/>
                 <Setter Property="RenderOptions.BitmapScalingMode" Value="HighQuality"/>
             </Style>
 
@@ -44,7 +45,7 @@
                 <Setter Property="UniformCornerRadius" Value="20"/>
                 <Setter Property="Background" Value="White"/>
                 <Setter Property="Padding" Value="16"/>
-                <Setter Property="materialDesign:ElevationAssist.Elevation" Value="Dp0"/>
+
                 <Setter Property="BorderBrush" Value="#E2E8F0"/>
                 <Setter Property="BorderThickness" Value="1"/>
                 <Style.Triggers>

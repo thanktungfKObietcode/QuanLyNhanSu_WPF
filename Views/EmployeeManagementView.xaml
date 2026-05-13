@@ -5,6 +5,7 @@
              xmlns:helpers="clr-namespace:QuanLyNhanSu_WPF.Helpers">
     <UserControl.Resources>
         <helpers:BoolToVisibilityConverter x:Key="BoolToVis"/>
+        <helpers:InverseBoolToVisibilityConverter x:Key="InverseBoolToVis"/>
         <helpers:PathToImageConverter x:Key="PathToImg"/>
         <helpers:EnumToVietnameseConverter x:Key="EnumToVN"/>
     </UserControl.Resources>
@@ -84,6 +85,16 @@
                         </DataGridTemplateColumn>
                         <DataGridTextColumn Header="Phòng ban" Binding="{Binding Department.DeptName}" Width="150"/>
                         <DataGridTextColumn Header="Chức vụ" Binding="{Binding Position.PosName}" Width="150"/>
+                        <DataGridTemplateColumn Header="Tài khoản" Width="Auto">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <materialDesign:PackIcon Kind="AccountCheck" Foreground="#22C55E" Width="20" Height="20" HorizontalAlignment="Center"
+                                                             ToolTip="Đã có tài khoản"
+                                                             Visibility="{Binding HasAccount, Converter={StaticResource BoolToVis}}"/>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+
                         <DataGridTemplateColumn Header="Trạng thái" Width="120">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
@@ -119,13 +130,22 @@
                                 <DataTemplate>
                                     <StackPanel Orientation="Horizontal">
                                         <Button Style="{StaticResource MaterialDesignFlatButton}" 
+                                                Command="{Binding DataContext.CreateUserAccountCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                                CommandParameter="{Binding}"
+                                                Visibility="{Binding HasAccount, Converter={StaticResource InverseBoolToVis}}"
+                                                Width="32" Height="32" Padding="0" Foreground="#3B82F6" ToolTip="Cấp tài khoản">
+                                            <materialDesign:PackIcon Kind="AccountPlusOutline" Width="18" Height="18"/>
+                                        </Button>
+                                        <Button Style="{StaticResource MaterialDesignFlatButton}" 
                                                 Command="{Binding DataContext.EditCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
-                                                Width="32" Height="32" Padding="0" Foreground="{DynamicResource PrimaryBrush}">
+                                                Width="32" Height="32" Padding="0" Foreground="{DynamicResource PrimaryBrush}"
+                                                ToolTip="Chỉnh sửa">
                                             <materialDesign:PackIcon Kind="PencilOutline" Width="18" Height="18"/>
                                         </Button>
                                         <Button Style="{StaticResource MaterialDesignFlatButton}" 
                                                 Command="{Binding DataContext.DeleteCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
-                                                Width="32" Height="32" Padding="0" Foreground="#EF4444" Margin="4,0">
+                                                Width="32" Height="32" Padding="0" Foreground="#EF4444" Margin="4,0"
+                                                ToolTip="Xóa/Vô hiệu hóa">
                                             <materialDesign:PackIcon Kind="DeleteOutline" Width="18" Height="18"/>
                                         </Button>
                                     </StackPanel>

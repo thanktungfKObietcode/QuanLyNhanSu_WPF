@@ -8,6 +8,7 @@
         <helpers:NullOrEmptyToVisibilityConverter x:Key="NullToVis"/>
         <helpers:BoolToStringConverter x:Key="BoolToStr"/>
         <helpers:PathToImageConverter x:Key="PathToImg"/>
+        <helpers:EnumToVietnameseConverter x:Key="EnumToVN"/>
     </UserControl.Resources>
 
     <Grid Background="White" Margin="24">
@@ -121,7 +122,7 @@
             <Button Command="{Binding CancelCommand}" Style="{StaticResource MaterialDesignFlatButton}" Content="HỦY" Margin="0,0,8,0"/>
             <Button Command="{Binding SaveCommand}" Content="LƯU THÔNG TIN">
                 <Button.Style>
-                    <Style TargetType="Button" BasedOn="{StaticResource MaterialDesignRaisedButton}">
+                    <Style TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
                         <Style.Triggers>
                             <DataTrigger Binding="{Binding IsSaving}" Value="True">
                                 <Setter Property="IsEnabled" Value="False"/>
