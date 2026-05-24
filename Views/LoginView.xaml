@@ -3,10 +3,10 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
         xmlns:helpers="clr-namespace:QuanLyNhanSu_WPF.Helpers"
-        Title="Đăng nhập - MEDIA HR" Height="600" Width="450"
+        Title="Dang nhap - MEDIA HR" Height="600" Width="450"
         WindowStartupLocation="CenterScreen" WindowStyle="None" AllowsTransparency="True" Background="Transparent"
         ResizeMode="NoResize">
-    
+
     <Window.Resources>
         <ResourceDictionary>
             <helpers:NullOrEmptyToVisibilityConverter x:Key="NullToVis"/>
@@ -15,58 +15,51 @@
     </Window.Resources>
 
     <Grid>
-        <!-- Background with Premium Gradient -->
         <Border CornerRadius="0" Margin="-510,-109,-510,-110">
             <Border.Background>
                 <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                    <GradientStop Color="#0F172A" Offset="0"/> <!-- Navy Dark -->
-                    <GradientStop Color="#1E1B4B" Offset="1"/> <!-- Deep Indigo -->
+                    <GradientStop Color="#0F172A" Offset="0"/>
+                    <GradientStop Color="#1E1B4B" Offset="1"/>
                 </LinearGradientBrush>
             </Border.Background>
         </Border>
 
-        <!-- Decorative Elements -->
         <Canvas IsHitTestVisible="False">
             <Ellipse Width="400" Height="400" Fill="White" Opacity="0.07" Canvas.Left="-150" Canvas.Top="-100"/>
             <Ellipse Width="250" Height="250" Fill="White" Opacity="0.05" Canvas.Right="-50" Canvas.Bottom="-50"/>
         </Canvas>
 
-        <!-- Login Card -->
         <Border CornerRadius="24" Background="#F0FFFFFF" Width="380" Height="520" VerticalAlignment="Center" HorizontalAlignment="Center">
             <Border.Effect>
                 <DropShadowEffect BlurRadius="50" Direction="-90" RenderingBias="Quality" ShadowDepth="15" Opacity="0.2"/>
             </Border.Effect>
-            
+
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
 
-                <!-- Header Actions -->
-                <Button Style="{DynamicResource MaterialDesignFlatButton}" 
-                        Content="✕" Width="40" Height="40" Padding="0" Click="CloseButton_Click"
+                <Button Style="{DynamicResource MaterialDesignFlatButton}"
+                        Content="X" Width="40" Height="40" Padding="0" Click="CloseButton_Click"
                         HorizontalAlignment="Right" Margin="16" Foreground="#6B7280"/>
 
                 <StackPanel Grid.Row="1" Margin="40,10,40,40">
-                    <!-- Logo Section -->
                     <Border Width="80" Height="80" Background="White" CornerRadius="20" Margin="0,0,0,16">
                         <Border.Effect>
                             <DropShadowEffect BlurRadius="15" Opacity="0.1" ShadowDepth="4"/>
                         </Border.Effect>
-                        <materialDesign:PackIcon Kind="StarFace" Width="48" Height="48" 
-                                                 HorizontalAlignment="Center" VerticalAlignment="Center" 
+                        <materialDesign:PackIcon Kind="StarFace" Width="48" Height="48"
+                                                 HorizontalAlignment="Center" VerticalAlignment="Center"
                                                  Foreground="#4F46E5"/>
                     </Border>
-                    
-                    <TextBlock Text="MEDIA HR" FontSize="28" FontWeight="Black" HorizontalAlignment="Center" Foreground="#1E1B4B"/>
-                    <TextBlock Text="Hệ thống quản trị nhân sự cao cấp" FontSize="13" Opacity="0.6" HorizontalAlignment="Center" Margin="0,4,0,32" Foreground="#374151"/>
 
-                    <!-- Input Fields -->
+                    <TextBlock Text="HR XUANTHANG" FontSize="28" FontWeight="Black" HorizontalAlignment="Center" Foreground="#1E1B4B"/>
+                    <TextBlock Text="He thong quan tri nhan su" FontSize="13" Opacity="0.6" HorizontalAlignment="Center" Margin="0,4,0,32" Foreground="#374151"/>
+
                     <materialDesign:Card materialDesign:ElevationAssist.Elevation="Dp0" Background="White" UniformCornerRadius="12" Margin="0,0,0,16">
-                        <TextBox materialDesign:HintAssist.Hint="Tên đăng nhập" 
+                        <TextBox materialDesign:HintAssist.Hint="Ten dang nhap"
                                  materialDesign:TextFieldAssist.HasClearButton="True"
-                                 materialDesign:TextFieldAssist.PrefixText="👤 "
                                  Padding="12,8" BorderThickness="0"
                                  Text="{Binding Username, UpdateSourceTrigger=PropertyChanged}">
                             <TextBox.InputBindings>
@@ -76,21 +69,17 @@
                     </materialDesign:Card>
 
                     <materialDesign:Card materialDesign:ElevationAssist.Elevation="Dp0" Background="White" UniformCornerRadius="12" Margin="0,0,0,12">
-                        <PasswordBox x:Name="PwdBox" materialDesign:HintAssist.Hint="Mật khẩu" 
-                                     materialDesign:TextFieldAssist.PrefixText="🔒 "
+                        <PasswordBox x:Name="PwdBox" materialDesign:HintAssist.Hint="Mat khau"
                                      Padding="12,8" BorderThickness="0"
-                                     PasswordChanged="PwdBox_PasswordChanged">
-                        </PasswordBox>
+                                     PasswordChanged="PwdBox_PasswordChanged"/>
                     </materialDesign:Card>
 
-                    <TextBlock Text="{Binding ErrorMessage}" Foreground="#EF4444" 
+                    <TextBlock Text="{Binding ErrorMessage}" Foreground="#EF4444"
                                FontSize="12" Margin="0,4,0,8" HorizontalAlignment="Center"
                                Visibility="{Binding ErrorMessage, Converter={StaticResource NullToVis}}"
-                               TextWrapping="Wrap" FontWeight="SemiBold">
-                    </TextBlock>
+                               TextWrapping="Wrap" FontWeight="SemiBold"/>
 
-                    <!-- Action Button -->
-                    <Button Content="BẮT ĐẦU LÀM VIỆC" Command="{Binding LoginCommand}" 
+                    <Button Content="BAT DAU LAM VIEC" Command="{Binding LoginCommand}"
                             Height="54" FontWeight="Black" FontSize="15"
                             materialDesign:ButtonAssist.CornerRadius="16" Margin="0,16,0,0"
                             Background="#4F46E5" BorderBrush="#4F46E5" Foreground="White">
@@ -107,11 +96,13 @@
 
                     <ProgressBar IsIndeterminate="True" Margin="0,12,0,0" Height="3"
                                  Visibility="{Binding IsBusy, Converter={StaticResource BoolToVis}}"
-                                 Foreground="#4F46E5">
-                    </ProgressBar>
-                    
-                    <TextBlock Text="Bạn quên mật khẩu?" FontSize="12" Foreground="#4F46E5" 
-                               HorizontalAlignment="Center" Margin="0,24,0,0" Cursor="Hand" Opacity="0.8" FontWeight="SemiBold"/>
+                                 Foreground="#4F46E5"/>
+
+                    <Button Content="KHOI PHUC TRUY CAP"
+                            Command="{Binding ForgotPasswordCommand}"
+                            Style="{StaticResource MaterialDesignFlatButton}"
+                            HorizontalAlignment="Center" Margin="0,24,0,0"
+                            Foreground="#4F46E5" FontWeight="SemiBold"/>
                 </StackPanel>
             </Grid>
         </Border>

@@ -17,8 +17,8 @@
 
         <DockPanel Grid.Row="0" Margin="0,0,0,24">
             <StackPanel>
-                <TextBlock Text="Quản Lý Chấm Công" FontSize="26" FontWeight="Bold" Foreground="{DynamicResource PrimaryHueDarkBrush}"/>
-                <TextBlock Text="Theo dõi và quản lý thời gian làm việc của nhân sự" Opacity="0.6" FontSize="13"/>
+                <TextBlock Text="Quan Ly Cham Cong" FontSize="26" FontWeight="Bold" Foreground="{DynamicResource PrimaryHueDarkBrush}"/>
+                <TextBlock Text="Theo doi ngay cong, cap nhat du lieu va kiem tra ket qua trong ngay." Opacity="0.65" FontSize="13"/>
             </StackPanel>
         </DockPanel>
 
@@ -26,82 +26,144 @@
             <StackPanel>
                 <DockPanel LastChildFill="False">
                     <StackPanel Orientation="Horizontal" DockPanel.Dock="Left">
-                        <DatePicker materialDesign:HintAssist.Hint="Từ ngày" Style="{StaticResource MaterialDesignFloatingHintDatePicker}"
+                        <DatePicker materialDesign:HintAssist.Hint="Tu ngay" Style="{StaticResource MaterialDesignFloatingHintDatePicker}"
                                     SelectedDate="{Binding FromDate}" Width="150" Margin="0,0,16,0"/>
-                        <DatePicker materialDesign:HintAssist.Hint="Đến ngày" Style="{StaticResource MaterialDesignFloatingHintDatePicker}"
+                        <DatePicker materialDesign:HintAssist.Hint="Den ngay" Style="{StaticResource MaterialDesignFloatingHintDatePicker}"
                                     SelectedDate="{Binding ToDate}" Width="150" Margin="0,0,16,0"/>
-
-                        <ComboBox materialDesign:HintAssist.Hint="Nhân viên (Admin)"
+                        <ComboBox materialDesign:HintAssist.Hint="Nhan vien"
                                   Visibility="{Binding IsAdmin, Converter={StaticResource BoolToVis}}"
                                   Style="{StaticResource MaterialDesignFloatingHintComboBox}"
                                   ItemsSource="{Binding Employees}" DisplayMemberPath="Name"
-                                  SelectedItem="{Binding SelectedEmployee}" Width="200" Margin="0,0,16,0"/>
-
+                                  SelectedItem="{Binding SelectedEmployee}" Width="220" Margin="0,0,16,0"/>
                         <Button Command="{Binding FilterCommand}" Style="{StaticResource MaterialDesignFlatButton}"
-                                Content="LỌC DỮ LIỆU" VerticalAlignment="Bottom"/>
+                                Content="LOC" VerticalAlignment="Bottom"/>
                     </StackPanel>
                 </DockPanel>
 
-                <GroupBox Header="Chấm công thủ công" Margin="0,16,0,0"
-                          Visibility="{Binding IsAdmin, Converter={StaticResource BoolToVis}}">
-                    <StackPanel Orientation="Horizontal">
-                        <DatePicker SelectedDate="{Binding MarkDate}" Width="120" Margin="0,0,16,0"/>
-                        <TextBox materialDesign:HintAssist.Hint="Giờ vào" Text="{Binding MarkCheckIn}" Width="80" Margin="0,0,16,0"/>
-                        <TextBox materialDesign:HintAssist.Hint="Giờ ra" Text="{Binding MarkCheckOut}" Width="80" Margin="0,0,16,0"/>
-                        <TextBox materialDesign:HintAssist.Hint="Giờ OT" Text="{Binding MarkOvertime}" Width="80" Margin="0,0,16,0"/>
-                        <ComboBox ItemsSource="{Binding StatusOptions}" SelectedItem="{Binding MarkStatus}" Width="110" Margin="0,0,16,0"/>
-                        <Button Command="{Binding MarkAttendanceCommand}" Content="XÁC NHẬN" Style="{StaticResource MaterialDesignRaisedButton}"/>
-                    </StackPanel>
-                </GroupBox>
+                <Border Margin="0,18,0,0" Padding="16" Background="#F8FAFC" CornerRadius="10"
+                        Visibility="{Binding IsAdmin, Converter={StaticResource BoolToVis}}">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <DockPanel Grid.Row="0" Grid.ColumnSpan="2" Margin="0,0,0,14">
+                            <StackPanel>
+                                <TextBlock Text="Nhap cham cong" FontWeight="Bold" FontSize="15"/>
+                                <TextBlock Text="{Binding FormModeText}" Opacity="0.65" FontSize="12"/>
+                            </StackPanel>
+                        </DockPanel>
+
+                        <WrapPanel Grid.Row="1" Grid.ColumnSpan="2" Margin="0,0,0,12">
+                            <DatePicker SelectedDate="{Binding MarkDate}" Width="130" Margin="0,0,12,0"/>
+                            <TextBox materialDesign:HintAssist.Hint="Gio vao" Text="{Binding MarkCheckIn}" Width="90" Margin="0,0,12,0"/>
+                            <TextBox materialDesign:HintAssist.Hint="Gio ra" Text="{Binding MarkCheckOut}" Width="90" Margin="0,0,12,0"/>
+                            <TextBox materialDesign:HintAssist.Hint="Gio OT" Text="{Binding MarkOvertime}" Width="90" Margin="0,0,12,0"/>
+                            <ComboBox ItemsSource="{Binding StatusOptions}" SelectedItem="{Binding MarkStatus}" Width="130" Margin="0,0,12,0"/>
+                            <TextBox materialDesign:HintAssist.Hint="Ghi chu" Text="{Binding MarkNote}" Width="240"/>
+                        </WrapPanel>
+
+                        <Grid Grid.Row="2" Grid.ColumnSpan="2" Margin="0,0,0,14">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <Border Grid.Column="0" Margin="0,0,8,0" Padding="14" Background="White" CornerRadius="10" BorderBrush="#E2E8F0" BorderThickness="1">
+                                <StackPanel>
+                                    <TextBlock Text="Gio lam" Opacity="0.65" FontSize="12"/>
+                                    <TextBlock Text="{Binding WorkingHoursPreview}" FontSize="22" FontWeight="SemiBold"/>
+                                </StackPanel>
+                            </Border>
+
+                            <Border Grid.Column="1" Margin="8,0,0,0" Padding="14" Background="White" CornerRadius="10" BorderBrush="#E2E8F0" BorderThickness="1">
+                                <StackPanel>
+                                    <TextBlock Text="Cong ngay" Opacity="0.65" FontSize="12"/>
+                                    <TextBlock Text="{Binding WorkUnitsPreview}" FontSize="22" FontWeight="SemiBold"/>
+                                </StackPanel>
+                            </Border>
+                        </Grid>
+
+                        <WrapPanel Grid.Row="3" Grid.ColumnSpan="2">
+                            <Button Command="{Binding AddAttendanceCommand}" Content="Them moi" Style="{StaticResource MaterialDesignRaisedButton}" Margin="0,0,12,0"/>
+                            <Button Command="{Binding UpdateAttendanceCommand}" Content="Luu chinh sua" Style="{StaticResource MaterialDesignOutlinedButton}" Margin="0,0,12,0"/>
+                            <Button Command="{Binding DeleteAttendanceCommand}" Content="Xoa ban ghi" Style="{StaticResource MaterialDesignOutlinedButton}" Margin="0,0,12,0"/>
+                            <Button Command="{Binding ResetFormCommand}" Content="Lam moi" Style="{StaticResource MaterialDesignFlatButton}"/>
+                        </WrapPanel>
+                    </Grid>
+                </Border>
             </StackPanel>
         </materialDesign:Card>
 
         <materialDesign:Card Grid.Row="2" materialDesign:ElevationAssist.Elevation="Dp1">
             <Grid>
-                <DataGrid ItemsSource="{Binding Records}" AutoGenerateColumns="False" IsReadOnly="True"
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+
+                <DockPanel Margin="16,14,16,8">
+                    <StackPanel>
+                        <TextBlock Text="Danh sach cham cong" FontWeight="Bold" FontSize="15"/>
+                        <TextBlock Text="Chon mot dong de dua du lieu len form chinh sua." Opacity="0.6" FontSize="12"
+                                   Visibility="{Binding IsAdmin, Converter={StaticResource BoolToVis}}"/>
+                    </StackPanel>
+                </DockPanel>
+
+                <DataGrid Grid.Row="1" ItemsSource="{Binding Records}" SelectedItem="{Binding SelectedRecord}" AutoGenerateColumns="False" IsReadOnly="True"
                           materialDesign:DataGridAssist.CellPadding="13 8 8 8"
                           materialDesign:DataGridAssist.ColumnHeaderPadding="8">
                     <DataGrid.Columns>
-                        <DataGridTextColumn Header="Ngày" Binding="{Binding Date, StringFormat=dd/MM/yyyy}" Width="100"/>
-                        <DataGridTextColumn Header="Nhân viên" Binding="{Binding Employee.Name}" Width="180"
+                        <DataGridTextColumn Header="Ngay" Binding="{Binding Date, StringFormat=dd/MM/yyyy}" Width="100"/>
+                        <DataGridTextColumn Header="Nhan vien" Binding="{Binding Employee.Name}" Width="180"
                                             Visibility="{Binding DataContext.IsAdmin, RelativeSource={RelativeSource AncestorType=UserControl}, Converter={StaticResource BoolToVis}}"/>
-                        <DataGridTextColumn Header="Giờ vào" Binding="{Binding CheckIn, StringFormat=\{0:hh\\:mm\}}" Width="100"/>
-                        <DataGridTextColumn Header="Giờ ra" Binding="{Binding CheckOut, StringFormat=\{0:hh\\:mm\}}" Width="100"/>
-                        <DataGridTextColumn Header="OT (Giờ)" Binding="{Binding OvertimeHours, StringFormat=\{0:N1\}}" Width="80"/>
-                        <DataGridTemplateColumn Header="Trạng thái" Width="120">
+                        <DataGridTextColumn Header="Gio vao" Binding="{Binding CheckIn, StringFormat=\{0:hh\\:mm\}}" Width="90"/>
+                        <DataGridTextColumn Header="Gio ra" Binding="{Binding CheckOut, StringFormat=\{0:hh\\:mm\}}" Width="90"/>
+                        <DataGridTextColumn Header="Gio lam" Binding="{Binding WorkingHours, StringFormat=\{0:N2\}}" Width="80"/>
+                        <DataGridTextColumn Header="Cong" Binding="{Binding WorkUnits, StringFormat=\{0:N2\}}" Width="70"/>
+                        <DataGridTextColumn Header="OT" Binding="{Binding OvertimeHours, StringFormat=\{0:N1\}}" Width="70"/>
+                        <DataGridTemplateColumn Header="Trang thai" Width="120">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
-                                    <Border CornerRadius="4" Padding="4,2" HorizontalAlignment="Left">
+                                    <Border CornerRadius="999" Padding="8,3" HorizontalAlignment="Left">
                                         <Border.Style>
                                             <Style TargetType="Border">
                                                 <Style.Triggers>
-                                                    <DataTrigger Binding="{Binding Status}" Value="Có mặt">
+                                                    <DataTrigger Binding="{Binding Status}" Value="{x:Static helpers:AttendanceStatuses.Present}">
                                                         <Setter Property="Background" Value="#E8F5E9"/>
                                                         <Setter Property="Tag" Value="#2E7D32"/>
                                                     </DataTrigger>
-                                                    <DataTrigger Binding="{Binding Status}" Value="Đi muộn">
+                                                    <DataTrigger Binding="{Binding Status}" Value="{x:Static helpers:AttendanceStatuses.Late}">
                                                         <Setter Property="Background" Value="#FFF3E0"/>
                                                         <Setter Property="Tag" Value="#EF6C00"/>
                                                     </DataTrigger>
-                                                    <DataTrigger Binding="{Binding Status}" Value="Vắng mặt">
+                                                    <DataTrigger Binding="{Binding Status}" Value="{x:Static helpers:AttendanceStatuses.Absent}">
                                                         <Setter Property="Background" Value="#FFEBEE"/>
                                                         <Setter Property="Tag" Value="#C62828"/>
                                                     </DataTrigger>
-                                                    <DataTrigger Binding="{Binding Status}" Value="Nghỉ phép">
+                                                    <DataTrigger Binding="{Binding Status}" Value="{x:Static helpers:AttendanceStatuses.OnLeave}">
                                                         <Setter Property="Background" Value="#E3F2FD"/>
                                                         <Setter Property="Tag" Value="#1565C0"/>
                                                     </DataTrigger>
                                                 </Style.Triggers>
                                             </Style>
                                         </Border.Style>
-                                        <TextBlock Text="{Binding Status}" Foreground="{Binding RelativeSource={RelativeSource AncestorType=Border}, Path=Tag}" FontWeight="Bold"/>
+                                        <TextBlock Text="{Binding Status}" Foreground="{Binding RelativeSource={RelativeSource AncestorType=Border}, Path=Tag}" FontWeight="SemiBold"/>
                                     </Border>
                                 </DataTemplate>
                             </DataGridTemplateColumn.CellTemplate>
                         </DataGridTemplateColumn>
-                        <DataGridTextColumn Header="Ghi chú" Binding="{Binding Note}" Width="*"/>
+                        <DataGridTextColumn Header="Ghi chu" Binding="{Binding Note}" Width="*"/>
                     </DataGrid.Columns>
                 </DataGrid>
+
                 <ProgressBar IsIndeterminate="True" Visibility="{Binding IsLoading, Converter={StaticResource BoolToVis}}"
                              VerticalAlignment="Top" Style="{StaticResource MaterialDesignLinearProgressBar}"/>
             </Grid>

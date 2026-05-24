@@ -205,6 +205,7 @@ namespace QuanLyNhanSu_WPF.ViewModels
                     }
 
                     LeaveStatusLabels = new[] { "Đã duyệt", "Chờ duyệt", "Từ chối" };
+                   
                     LeaveStatusSeries.Clear();
                     LeaveStatusSeries.Add(new ColumnSeries { Title = "Đã duyệt", Values = new ChartValues<int> { approved } });
                     LeaveStatusSeries.Add(new ColumnSeries { Title = "Chờ duyệt", Values = new ChartValues<int> { pending } });

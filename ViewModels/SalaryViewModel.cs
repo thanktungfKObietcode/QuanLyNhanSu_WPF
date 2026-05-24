@@ -8,8 +8,6 @@ using QuanLyNhanSu_WPF.Helpers;
 using QuanLyNhanSu_WPF.Models;
 using QuanLyNhanSu_WPF.Repositories;
 using QuanLyNhanSu_WPF.Services;
-using ClosedXML.Excel;
-using Microsoft.Win32;
 
 namespace QuanLyNhanSu_WPF.ViewModels
 {
@@ -22,6 +20,12 @@ namespace QuanLyNhanSu_WPF.ViewModels
         private Salary _selectedSalary;
         private ObservableCollection<Salary> _salaries = new();
         private Salary _myLatestSalary;
+        private ObservableCollection<DailySalaryEntry> _dailySalaryEntries = new();
+        private ObservableCollection<MonthlySalarySummary> _monthlySalarySummaries = new();
+        private DailySalaryEntry _selectedDailySalaryEntry;
+        private MonthlySalarySummary _selectedMonthlySalarySummary;
+        private ObservableCollection<Employee> _employees = new();
+        private Employee _selectedEmployeeFilter;
 
         public bool IsAdmin { get => _isAdmin; set => SetProperty(ref _isAdmin, value); }
         public bool IsLoading { get => _isLoading; set => SetProperty(ref _isLoading, value); }
@@ -31,80 +35,55 @@ namespace QuanLyNhanSu_WPF.ViewModels
         public ObservableCollection<Salary> Salaries { get => _salaries; set => SetProperty(ref _salaries, value); }
         public Salary MyLatestSalary { get => _myLatestSalary; set => SetProperty(ref _myLatestSalary, value); }
         public ObservableCollection<Salary> MySalaryHistory { get; } = new();
+        public ObservableCollection<DailySalaryEntry> DailySalaryEntries { get => _dailySalaryEntries; set => SetProperty(ref _dailySalaryEntries, value); }
+        public ObservableCollection<MonthlySalarySummary> MonthlySalarySummaries { get => _monthlySalarySummaries; set => SetProperty(ref _monthlySalarySummaries, value); }
+        public DailySalaryEntry SelectedDailySalaryEntry { get => _selectedDailySalaryEntry; set => SetProperty(ref _selectedDailySalaryEntry, value); }
+        public MonthlySalarySummary SelectedMonthlySalarySummary { get => _selectedMonthlySalarySummary; set => SetProperty(ref _selectedMonthlySalarySummary, value); }
+        public ObservableCollection<Employee> Employees { get => _employees; set => SetProperty(ref _employees, value); }
+        public Employee SelectedEmployeeFilter { get => _selectedEmployeeFilter; set => SetProperty(ref _selectedEmployeeFilter, value); }
 
         public ICommand LoadCommand { get; }
         public ICommand CalculateSalaryCommand { get; }
         public ICommand ViewHistoryCommand { get; }
-        public ICommand ExportCommand { get; }
+        public ICommand ExportMonthlyCommand { get; }
+        public ICommand ExportDailyCommand { get; }
 
         public ObservableCollection<int> Months { get; } = new() { 1,2,3,4,5,6,7,8,9,10,11,12 };
         public ObservableCollection<int> Years { get; }
 
-        private readonly SalaryService _salaryService;
-        private readonly EmployeeRepository _empRepo;
+        private readonly ExcelExportService _exportService = new();
 
         public SalaryViewModel()
         {
-            var db = new ApplicationDbContext(DbContextFactory.CreateOptions());
-            _salaryService = new SalaryService(db);
-            _empRepo = new EmployeeRepository(db);
             IsAdmin = SessionManager.Instance.CurrentUser?.Role == UserRole.Admin;
 
             Years = new ObservableCollection<int>();
-            for (int y = DateTime.Today.Year; y >= DateTime.Today.Year - 5; y--) Years.Add(y);
+            for (int y = DateTime.Today.Year; y >= DateTime.Today.Year - 5; y--)
+                Years.Add(y);
 
             LoadCommand = new RelayCommand(async _ => await LoadAsync());
             CalculateSalaryCommand = new RelayCommand(async _ => await CalculateAllAsync(), _ => IsAdmin);
             ViewHistoryCommand = new RelayCommand(async _ => await LoadMyHistoryAsync());
-            ExportCommand = new RelayCommand(_ => ExportSalaries());
+            ExportMonthlyCommand = new RelayCommand(_ => ExportMonthlySummaries());
+            ExportDailyCommand = new RelayCommand(_ => ExportDailySalaries());
 
-            Task.Run(LoadAsync);
+            _ = InitAsync();
         }
 
-        private void ExportSalaries()
+        private async Task InitAsync()
         {
-            var exportService = new ExcelExportService();
-            string fileName = $"BangLuong_Thang{SelectedMonth}_{SelectedYear}.xlsx";
-            exportService.ExportToExcel(Salaries, "BangLuong", fileName, (ws, data) =>
+            if (IsAdmin)
             {
-                ws.Cell(1, 1).Value = "Nhân viên";
-                ws.Cell(1, 2).Value = "Mã NV";
-                ws.Cell(1, 3).Value = "Tháng/Năm";
-                ws.Cell(1, 4).Value = "Lương cơ bản";
-                ws.Cell(1, 5).Value = "Phụ cấp";
-                ws.Cell(1, 6).Value = "KPI/Thưởng";
-                ws.Cell(1, 7).Value = "Hoa hồng Sales";
-                ws.Cell(1, 8).Value = "Lương OT";
-                ws.Cell(1, 9).Value = "Thưởng khác";
-                ws.Cell(1, 10).Value = "Khấu trừ";
-                ws.Cell(1, 11).Value = "Thực lĩnh";
-
-                int row = 2;
-                foreach (var s in data)
+                var employees = await CreateEmployeeRepository().GetActiveAsync();
+                Application.Current?.Dispatcher.Invoke(() =>
                 {
-                    ws.Cell(row, 1).Value = s.Employee?.Name;
-                    ws.Cell(row, 2).Value = s.Employee?.Code;
-                    ws.Cell(row, 3).Value = $"{s.Month}/{s.Year}";
-                    ws.Cell(row, 4).Value = s.BaseSalary;
-                    ws.Cell(row, 5).Value = s.Allowances;
-                    ws.Cell(row, 6).Value = s.KPIBonus;
-                    ws.Cell(row, 7).Value = s.Commission;
-                    ws.Cell(row, 8).Value = s.OTSalary;
-                    ws.Cell(row, 9).Value = s.Bonus;
-                    ws.Cell(row, 10).Value = s.Deductions;
-                    ws.Cell(row, 11).Value = s.NetSalary;
-                    
-                    ws.Cell(row, 4).Style.NumberFormat.Format = "#,##0 \"₫\"";
-                    ws.Cell(row, 5).Style.NumberFormat.Format = "#,##0 \"₫\"";
-                    ws.Cell(row, 6).Style.NumberFormat.Format = "#,##0 \"₫\"";
-                    ws.Cell(row, 7).Style.NumberFormat.Format = "#,##0 \"₫\"";
-                    ws.Cell(row, 8).Style.NumberFormat.Format = "#,##0 \"₫\"";
-                    ws.Cell(row, 9).Style.NumberFormat.Format = "#,##0 \"₫\"";
-                    ws.Cell(row, 10).Style.NumberFormat.Format = "#,##0 \"₫\"";
-                    ws.Cell(row, 11).Style.NumberFormat.Format = "#,##0 \"₫\"";
-                    row++;
-                }
-            });
+                    Employees.Clear();
+                    foreach (var employee in employees)
+                        Employees.Add(employee);
+                });
+            }
+
+            await LoadAsync();
         }
 
         private async Task LoadAsync()
@@ -114,61 +93,204 @@ namespace QuanLyNhanSu_WPF.ViewModels
             {
                 if (IsAdmin)
                 {
-                    var list = await _salaryService.GetMonthlyPayrollAsync(SelectedMonth, SelectedYear);
+                    var employeeId = SelectedEmployeeFilter?.EmployeeID;
+                    var salaryService = CreateSalaryService();
+                    var dailyRows = await salaryService.GetDailySalaryEntriesAsync(SelectedMonth, SelectedYear, employeeId);
+                    var monthlyRows = await salaryService.GetMonthlySalarySummariesAsync(SelectedMonth, SelectedYear, employeeId);
+                    var officialRows = await salaryService.GetMonthlyPayrollAsync(SelectedMonth, SelectedYear);
+
                     Application.Current?.Dispatcher.Invoke(() =>
                     {
-                        Salaries.Clear(); foreach (var s in list) Salaries.Add(s);
+                        DailySalaryEntries.Clear();
+                        foreach (var row in dailyRows)
+                            DailySalaryEntries.Add(row);
+
+                        MonthlySalarySummaries.Clear();
+                        foreach (var row in monthlyRows)
+                            MonthlySalarySummaries.Add(row);
+
+                        Salaries.Clear();
+                        foreach (var salary in officialRows)
+                        {
+                            if (!employeeId.HasValue || salary.EmployeeID == employeeId.Value)
+                                Salaries.Add(salary);
+                        }
                     });
                 }
                 else
                 {
-                    MyLatestSalary = await _salaryService.GetMyLatestSalaryAsync();
+                    MyLatestSalary = await CreateSalaryService().GetMyLatestSalaryAsync();
                     await LoadMyHistoryAsync();
+
+                    var salaryService = CreateSalaryService();
+                    var dailyRows = await salaryService.GetDailySalaryEntriesAsync(SelectedMonth, SelectedYear);
+                    var monthlyRows = await salaryService.GetMonthlySalarySummariesAsync(SelectedMonth, SelectedYear);
+
+                    Application.Current?.Dispatcher.Invoke(() =>
+                    {
+                        DailySalaryEntries.Clear();
+                        foreach (var row in dailyRows)
+                            DailySalaryEntries.Add(row);
+
+                        MonthlySalarySummaries.Clear();
+                        foreach (var row in monthlyRows)
+                            MonthlySalarySummaries.Add(row);
+                    });
                 }
             }
-            catch (UnauthorizedAccessException ex) { MessageBox.Show(ex.Message); }
-            catch (Exception ex) { System.Diagnostics.Debug.WriteLine(ex.Message); }
-            finally { IsLoading = false; }
+            catch (UnauthorizedAccessException ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Loi: {ex.Message}");
+            }
+            finally
+            {
+                IsLoading = false;
+            }
         }
 
         private async Task CalculateAllAsync()
         {
             var result = MessageBox.Show(
-                $"Tính lương tháng {SelectedMonth}/{SelectedYear} cho tất cả nhân viên?",
-                "Xác nhận", MessageBoxButton.YesNo, MessageBoxImage.Question);
-            if (result != MessageBoxResult.Yes) return;
+                $"Tinh luong thang {SelectedMonth}/{SelectedYear} cho tat ca nhan vien?",
+                "Xac nhan",
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Question);
+
+            if (result != MessageBoxResult.Yes)
+                return;
 
             IsLoading = true;
             try
             {
-                var employees = await _empRepo.GetActiveAsync();
-                int count = 0;
-                foreach (var emp in employees)
+                var employees = await CreateEmployeeRepository().GetActiveAsync();
+                var count = 0;
+                foreach (var employee in employees)
                 {
-                    await _salaryService.CalculateMonthlySalaryAsync(emp, SelectedMonth, SelectedYear);
+                    await CreateSalaryService().CalculateMonthlySalaryAsync(employee, SelectedMonth, SelectedYear);
                     count++;
                 }
+
                 await LoadAsync();
-                MessageBox.Show($"Đã tính lương cho {count} nhân viên.", "Hoàn thành", MessageBoxButton.OK, MessageBoxImage.Information);
+                MessageBox.Show($"Da tinh luong cho {count} nhan vien.", "Hoan thanh", MessageBoxButton.OK, MessageBoxImage.Information);
             }
-            catch (Exception ex) { MessageBox.Show($"Lỗi: {ex.Message}"); }
-            finally { IsLoading = false; }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Loi: {ex.Message}");
+            }
+            finally
+            {
+                IsLoading = false;
+            }
         }
 
         private async Task LoadMyHistoryAsync()
         {
             var user = SessionManager.Instance.CurrentUser;
-            if (user == null || !user.EmployeeID.HasValue) return;
+            if (user == null || !user.EmployeeID.HasValue)
+                return;
+
             try
             {
-                var history = await _salaryService.GetSalaryHistoryAsync(user.EmployeeID.Value);
+                var history = await CreateSalaryService().GetSalaryHistoryAsync(user.EmployeeID.Value);
                 Application.Current?.Dispatcher.Invoke(() =>
                 {
                     MySalaryHistory.Clear();
-                    foreach (var s in history) MySalaryHistory.Add(s);
+                    foreach (var salary in history)
+                        MySalaryHistory.Add(salary);
                 });
             }
-            catch (UnauthorizedAccessException ex) { MessageBox.Show(ex.Message); }
+            catch (UnauthorizedAccessException ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
         }
+
+        private void ExportDailySalaries()
+        {
+            _exportService.ExportToExcel(
+                DailySalaryEntries,
+                "LuongNgay",
+                $"LuongNgay_Thang{SelectedMonth}_{SelectedYear}.xlsx",
+                (ws, data) =>
+                {
+                    ws.Cell(1, 1).Value = "Ngay";
+                    ws.Cell(1, 2).Value = "Nhan vien";
+                    ws.Cell(1, 3).Value = "Ma NV";
+                    ws.Cell(1, 4).Value = "Phong ban";
+                    ws.Cell(1, 5).Value = "Trang thai";
+                    ws.Cell(1, 6).Value = "Cong ngay";
+                    ws.Cell(1, 7).Value = "Gio lam";
+                    ws.Cell(1, 8).Value = "OT";
+                    ws.Cell(1, 9).Value = "Luong ngay";
+                    ws.Cell(1, 10).Value = "Luong OT";
+                    ws.Cell(1, 11).Value = "Tong ngay";
+
+                    var row = 2;
+                    foreach (var item in data)
+                    {
+                        ws.Cell(row, 1).Value = item.Date.ToString("dd/MM/yyyy");
+                        ws.Cell(row, 2).Value = item.EmployeeName;
+                        ws.Cell(row, 3).Value = item.EmployeeCode;
+                        ws.Cell(row, 4).Value = item.DepartmentName;
+                        ws.Cell(row, 5).Value = item.AttendanceStatus;
+                        ws.Cell(row, 6).Value = item.WorkUnits;
+                        ws.Cell(row, 7).Value = item.WorkingHours;
+                        ws.Cell(row, 8).Value = item.OvertimeHours;
+                        ws.Cell(row, 9).Value = item.BaseAmount;
+                        ws.Cell(row, 10).Value = item.OvertimeAmount;
+                        ws.Cell(row, 11).Value = item.TotalAmount;
+                        row++;
+                    }
+                });
+        }
+
+        private void ExportMonthlySummaries()
+        {
+            _exportService.ExportToExcel(
+                MonthlySalarySummaries,
+                "LuongThang",
+                $"LuongThang_Thang{SelectedMonth}_{SelectedYear}.xlsx",
+                (ws, data) =>
+                {
+                    ws.Cell(1, 1).Value = "Nhan vien";
+                    ws.Cell(1, 2).Value = "Ma NV";
+                    ws.Cell(1, 3).Value = "Phong ban";
+                    ws.Cell(1, 4).Value = "Tong cong";
+                    ws.Cell(1, 5).Value = "Tong gio lam";
+                    ws.Cell(1, 6).Value = "Tong OT";
+                    ws.Cell(1, 7).Value = "Luong theo ngay";
+                    ws.Cell(1, 8).Value = "Luong OT";
+                    ws.Cell(1, 9).Value = "Phu cap co dinh";
+                    ws.Cell(1, 10).Value = "Tong tam tinh";
+                    ws.Cell(1, 11).Value = "Luong chot";
+
+                    var row = 2;
+                    foreach (var item in data)
+                    {
+                        ws.Cell(row, 1).Value = item.EmployeeName;
+                        ws.Cell(row, 2).Value = item.EmployeeCode;
+                        ws.Cell(row, 3).Value = item.DepartmentName;
+                        ws.Cell(row, 4).Value = item.TotalWorkUnits;
+                        ws.Cell(row, 5).Value = item.TotalWorkingHours;
+                        ws.Cell(row, 6).Value = item.TotalOvertimeHours;
+                        ws.Cell(row, 7).Value = item.DailySalaryTotal;
+                        ws.Cell(row, 8).Value = item.OvertimeSalaryTotal;
+                        ws.Cell(row, 9).Value = item.FixedAllowances;
+                        ws.Cell(row, 10).Value = item.ProjectedNetSalary;
+                        ws.Cell(row, 11).Value = item.OfficialNetSalary;
+                        row++;
+                    }
+                });
+        }
+
+        private static SalaryService CreateSalaryService()
+            => new(new ApplicationDbContext(DbContextFactory.CreateOptions()));
+
+        private static EmployeeRepository CreateEmployeeRepository()
+            => new(new ApplicationDbContext(DbContextFactory.CreateOptions()));
     }
 }

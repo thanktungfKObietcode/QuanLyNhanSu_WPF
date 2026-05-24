@@ -25,5 +25,11 @@ namespace QuanLyNhanSu_WPF.Models
         public string Note { get; set; }
 
         public double OvertimeHours { get; set; }
+
+        [NotMapped]
+        public double WorkingHours => Helpers.AttendanceCalculations.CalculateWorkingHours(CheckIn, CheckOut);
+
+        [NotMapped]
+        public double WorkUnits => Helpers.AttendanceCalculations.CalculateDailyWorkUnits(Status, CheckIn, CheckOut);
     }
 }

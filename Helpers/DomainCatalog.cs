@@ -67,6 +67,43 @@ namespace QuanLyNhanSu_WPF.Helpers
         }
     }
 
+    public static class AttendanceCalculations
+    {
+        private const double StandardHoursPerDay = 8d;
+        private const double HalfDayThresholdHours = 4d;
+
+        public static double CalculateWorkingHours(TimeSpan? checkIn, TimeSpan? checkOut)
+        {
+            if (!checkIn.HasValue || !checkOut.HasValue || checkOut.Value <= checkIn.Value)
+                return 0;
+
+            return Math.Round((checkOut.Value - checkIn.Value).TotalHours, 2);
+        }
+
+        public static double CalculateDailyWorkUnits(string status, TimeSpan? checkIn, TimeSpan? checkOut)
+        {
+            var normalized = AttendanceStatuses.Normalize(status);
+
+            if (normalized == AttendanceStatuses.Absent)
+                return 0;
+
+            if (normalized == AttendanceStatuses.OnLeave)
+                return 1;
+
+            var workingHours = CalculateWorkingHours(checkIn, checkOut);
+            if (workingHours <= 0)
+                return normalized == AttendanceStatuses.Present || normalized == AttendanceStatuses.Late ? 1 : 0;
+
+            if (workingHours < HalfDayThresholdHours)
+                return 0.5;
+
+            if (workingHours < StandardHoursPerDay)
+                return 0.75;
+
+            return 1;
+        }
+    }
+
     public static class LeaveTypes
     {
         public const string Annual = "Annual";

@@ -11,7 +11,7 @@
     <Grid>
         <!-- Loading Overlay -->
         <Grid Visibility="{Binding IsLoading, Converter={StaticResource BoolToVis}}"
-              Background="#80000000" Panel.ZIndex="99">
+              Background="#80000000" Panel.ZIndex="99" Margin="0,66,0,-66" HorizontalAlignment="Center" Width="698">
             <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
                 <ProgressBar IsIndeterminate="True" Width="200" Height="6"
                              Foreground="{DynamicResource PrimaryHueMidBrush}"/>
@@ -39,7 +39,6 @@
                             Content="🔄 Làm mới"/>
                 </DockPanel>
 
-                <!-- ── Row 1: 4 Stat Cards ── -->
                 <UniformGrid Columns="4" Margin="0,0,0,16">
 
                     <!-- Total Employees -->
@@ -223,7 +222,7 @@
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
-                            
+
                             <materialDesign:Card Grid.Column="0" Margin="0,0,6,0" Padding="12"
                                                   materialDesign:ElevationAssist.Elevation="Dp2">
                                 <StackPanel>

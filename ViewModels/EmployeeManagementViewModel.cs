@@ -3,11 +3,11 @@ using System.Collections.ObjectModel;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
+using ClosedXML.Excel;
 using QuanLyNhanSu_WPF.Data;
 using QuanLyNhanSu_WPF.Helpers;
 using QuanLyNhanSu_WPF.Models;
 using QuanLyNhanSu_WPF.Services;
-using ClosedXML.Excel;
 
 namespace QuanLyNhanSu_WPF.ViewModels
 {
@@ -17,11 +17,21 @@ namespace QuanLyNhanSu_WPF.ViewModels
         private Employee _selectedEmployee;
         private string _searchText;
         private bool _isLoading;
-        private bool _canAdd, _canEdit, _canDelete;
+        private bool _canAdd;
+        private bool _canEdit;
+        private bool _canDelete;
 
         public ObservableCollection<Employee> Employees { get => _employees; set => SetProperty(ref _employees, value); }
         public Employee SelectedEmployee { get => _selectedEmployee; set => SetProperty(ref _selectedEmployee, value); }
-        public string SearchText { get => _searchText; set { SetProperty(ref _searchText, value); SearchCommand.Execute(null); } }
+        public string SearchText
+        {
+            get => _searchText;
+            set
+            {
+                SetProperty(ref _searchText, value);
+                SearchCommand.Execute(null);
+            }
+        }
         public bool IsLoading { get => _isLoading; set => SetProperty(ref _isLoading, value); }
         public bool CanAdd { get => _canAdd; set => SetProperty(ref _canAdd, value); }
         public bool CanEdit { get => _canEdit; set => SetProperty(ref _canEdit, value); }
@@ -43,14 +53,8 @@ namespace QuanLyNhanSu_WPF.ViewModels
         public event Action<string> UserAccountCreated;
         public event Action<string> ErrorOccurred;
 
-        private readonly EmployeeService _service;
-
         public EmployeeManagementViewModel()
         {
-            var db = new ApplicationDbContext(DbContextFactory.CreateOptions());
-            _service = new EmployeeService(db);
-
-            // Check permissions
             CanAdd = HasPermission(Permissions.Add_Employee);
             CanEdit = HasPermission(Permissions.Edit_Employee);
             CanDelete = HasPermission(Permissions.Delete_Employee);
@@ -62,14 +66,26 @@ namespace QuanLyNhanSu_WPF.ViewModels
 
             AddCommand = new RelayCommand(_ => AddRequested?.Invoke(new Employee()), _ => CanAdd);
             EditCommand = new RelayCommand(
-                _ => { if (SelectedEmployee != null) EditRequested?.Invoke(SelectedEmployee); },
+                _ =>
+                {
+                    if (SelectedEmployee != null)
+                    {
+                        EditRequested?.Invoke(SelectedEmployee);
+                    }
+                },
                 _ => CanEdit && SelectedEmployee != null);
 
-            DeleteCommand = new RelayCommand(async _ => await DeactivateAsync(), _ => CanDelete && SelectedEmployee != null);
+            DeleteCommand = new RelayCommand(async _ => await DeleteEmployeeAsync(), _ => CanDelete && SelectedEmployee != null);
             CreateUserAccountCommand = new RelayCommand(async param => await CreateUserAccountAsync(param as Employee));
-            ViewDetailsCommand = new RelayCommand(_ => { if (SelectedEmployee != null) ViewDetailsRequested?.Invoke(SelectedEmployee); });
+            ViewDetailsCommand = new RelayCommand(_ =>
+            {
+                if (SelectedEmployee != null)
+                {
+                    ViewDetailsRequested?.Invoke(SelectedEmployee);
+                }
+            });
 
-            Task.Run(LoadEmployeesAsync);
+            _ = LoadEmployeesAsync();
         }
 
         private void ExportEmployees()
@@ -77,30 +93,30 @@ namespace QuanLyNhanSu_WPF.ViewModels
             var exportService = new ExcelExportService();
             exportService.ExportToExcel(Employees, "NhanVien", "DanhSachNhanVien.xlsx", (ws, data) =>
             {
-                ws.Cell(1, 1).Value = "Mã NV";
-                ws.Cell(1, 2).Value = "Họ và Tên";
-                ws.Cell(1, 3).Value = "Giới tính";
-                ws.Cell(1, 4).Value = "Ngày sinh";
-                ws.Cell(1, 5).Value = "Điện thoại";
+                ws.Cell(1, 1).Value = "Ma NV";
+                ws.Cell(1, 2).Value = "Ho va Ten";
+                ws.Cell(1, 3).Value = "Gioi tinh";
+                ws.Cell(1, 4).Value = "Ngay sinh";
+                ws.Cell(1, 5).Value = "Dien thoai";
                 ws.Cell(1, 6).Value = "Email";
-                ws.Cell(1, 7).Value = "Phòng ban";
-                ws.Cell(1, 8).Value = "Chức vụ";
-                ws.Cell(1, 9).Value = "Tài khoản";
-                ws.Cell(1, 10).Value = "Trạng thái";
+                ws.Cell(1, 7).Value = "Phong ban";
+                ws.Cell(1, 8).Value = "Chuc vu";
+                ws.Cell(1, 9).Value = "Tai khoan";
+                ws.Cell(1, 10).Value = "Trang thai";
 
-                int row = 2;
-                foreach (var emp in data)
+                var row = 2;
+                foreach (var employee in data)
                 {
-                    ws.Cell(row, 1).Value = emp.Code;
-                    ws.Cell(row, 2).Value = emp.Name;
-                    ws.Cell(row, 3).Value = emp.Gender;
-                    ws.Cell(row, 4).Value = emp.DateOfBirth.ToString("dd/MM/yyyy");
-                    ws.Cell(row, 5).Value = emp.PhoneNumber;
-                    ws.Cell(row, 6).Value = emp.Email;
-                    ws.Cell(row, 7).Value = emp.Department?.DeptName;
-                    ws.Cell(row, 8).Value = emp.Position?.PosName;
-                    ws.Cell(row, 9).Value = emp.HasAccount ? "Đã có" : "Chưa có";
-                    ws.Cell(row, 10).Value = emp.Status.ToString();
+                    ws.Cell(row, 1).Value = employee.Code;
+                    ws.Cell(row, 2).Value = employee.Name;
+                    ws.Cell(row, 3).Value = employee.Gender;
+                    ws.Cell(row, 4).Value = employee.DateOfBirth.ToString("dd/MM/yyyy");
+                    ws.Cell(row, 5).Value = employee.PhoneNumber;
+                    ws.Cell(row, 6).Value = employee.Email;
+                    ws.Cell(row, 7).Value = employee.Department?.DeptName;
+                    ws.Cell(row, 8).Value = employee.Position?.PosName;
+                    ws.Cell(row, 9).Value = employee.HasAccount ? "Da co" : "Chua co";
+                    ws.Cell(row, 10).Value = employee.Status.ToString();
                     row++;
                 }
             });
@@ -111,22 +127,28 @@ namespace QuanLyNhanSu_WPF.ViewModels
             IsLoading = true;
             try
             {
-                var list = await _service.GetAllAsync();
+                var list = await CreateEmployeeService().GetAllAsync();
                 Application.Current?.Dispatcher.Invoke(() =>
                 {
                     Employees.Clear();
-                    foreach (var e in list) Employees.Add(e);
+                    foreach (var employee in list)
+                    {
+                        Employees.Add(employee);
+                    }
                 });
             }
             catch (UnauthorizedAccessException)
             {
-                ErrorOccurred?.Invoke("Bạn không có quyền xem danh sách nhân viên.");
+                ErrorOccurred?.Invoke("Ban khong co quyen xem danh sach nhan vien.");
             }
             catch (Exception ex)
             {
-                ErrorOccurred?.Invoke($"Lỗi: {ex.Message}");
+                ErrorOccurred?.Invoke($"Loi: {ex.Message}");
             }
-            finally { IsLoading = false; }
+            finally
+            {
+                IsLoading = false;
+            }
         }
 
         private async Task SearchAsync()
@@ -134,64 +156,97 @@ namespace QuanLyNhanSu_WPF.ViewModels
             IsLoading = true;
             try
             {
-                var list = await _service.SearchAsync(SearchText ?? "");
+                var list = await CreateEmployeeService().SearchAsync(SearchText ?? string.Empty);
                 Application.Current?.Dispatcher.Invoke(() =>
                 {
                     Employees.Clear();
-                    foreach (var e in list) Employees.Add(e);
+                    foreach (var employee in list)
+                    {
+                        Employees.Add(employee);
+                    }
                 });
             }
-            finally { IsLoading = false; }
+            finally
+            {
+                IsLoading = false;
+            }
         }
 
-        private async Task DeactivateAsync()
+        private async Task DeleteEmployeeAsync()
         {
-            if (SelectedEmployee == null) return;
-            var emp = SelectedEmployee;
+            if (SelectedEmployee == null)
+            {
+                return;
+            }
+
+            var employee = SelectedEmployee;
             var result = MessageBox.Show(
-                $"Vô hiệu hóa nhân viên {emp.Name}?",
-                "Xác nhận", MessageBoxButton.YesNo, MessageBoxImage.Warning);
-            if (result != MessageBoxResult.Yes) return;
+                $"Xoa hoan toan nhan vien {employee.Name}?\n\nToan bo du lieu cham cong, nghi phep, luong va tai khoan lien quan se bi xoa.",
+                "Xac nhan xoa",
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Warning);
+
+            if (result != MessageBoxResult.Yes)
+            {
+                return;
+            }
 
             try
             {
-                await _service.DeactivateAsync(emp.EmployeeID);
+                await CreateEmployeeService().DeactivateAsync(employee.EmployeeID);
                 await LoadEmployeesAsync();
             }
-            catch (Exception ex) { ErrorOccurred?.Invoke(ex.Message); }
+            catch (Exception ex)
+            {
+                ErrorOccurred?.Invoke(ex.Message);
+            }
         }
 
-        private async Task CreateUserAccountAsync(Employee emp)
+        private async Task CreateUserAccountAsync(Employee employee)
         {
-            var target = emp ?? SelectedEmployee;
-            if (target == null) return;
+            var target = employee ?? SelectedEmployee;
+            if (target == null)
+            {
+                return;
+            }
 
             var confirm = MessageBox.Show(
-                $"Cấp tài khoản đăng nhập cho nhân viên {target.Name}?\nTên đăng nhập sẽ là: {target.Code.ToLower()}",
-                "Xác nhận", MessageBoxButton.YesNo, MessageBoxImage.Question);
-            
-            if (confirm != MessageBoxResult.Yes) return;
+                $"Cap tai khoan dang nhap cho nhan vien {target.Name}?\nTen dang nhap se la: {target.Code.ToLower()}",
+                "Xac nhan",
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Question);
+
+            if (confirm != MessageBoxResult.Yes)
+            {
+                return;
+            }
 
             try
             {
-                var (success, error, pwd) = await _service.CreateUserAccountAsync(target.EmployeeID);
+                var (success, error, password) = await CreateEmployeeService().CreateUserAccountAsync(target.EmployeeID);
                 if (success)
                 {
                     await LoadEmployeesAsync();
-                    UserAccountCreated?.Invoke($"Tạo tài khoản thành công!\n\n" +
-                        $"Tên đăng nhập: {target.Code.ToLower()}\n" +
-                        $"Mật khẩu mặc định: {pwd}\n\n" +
-                        $"Hãy cung cấp thông tin này cho nhân viên.");
+                    UserAccountCreated?.Invoke(
+                        $"Tao tai khoan thanh cong!\n\nTen dang nhap: {target.Code.ToLower()}\nMat khau mac dinh: {password}\n\nHay cung cap thong tin nay cho nhan vien.");
                 }
                 else
+                {
                     ErrorOccurred?.Invoke(error);
+                }
             }
-            catch (Exception ex) { ErrorOccurred?.Invoke(ex.Message); }
+            catch (Exception ex)
+            {
+                ErrorOccurred?.Invoke(ex.Message);
+            }
         }
 
         public async Task RefreshAfterSave()
         {
             await LoadEmployeesAsync();
         }
+
+        private static EmployeeService CreateEmployeeService()
+            => new(new ApplicationDbContext(DbContextFactory.CreateOptions()));
     }
 }

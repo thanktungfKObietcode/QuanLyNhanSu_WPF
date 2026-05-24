@@ -10,6 +10,20 @@ namespace QuanLyNhanSu_WPF.Views
         public LoginView()
         {
             InitializeComponent();
+            DataContextChanged += LoginView_DataContextChanged;
+        }
+
+        private void LoginView_DataContextChanged(object sender, DependencyPropertyChangedEventArgs e)
+        {
+            if (e.OldValue is LoginViewModel oldVm)
+            {
+                oldVm.ForgotPasswordRequested -= OpenRecoveryDialog;
+            }
+
+            if (e.NewValue is LoginViewModel newVm)
+            {
+                newVm.ForgotPasswordRequested += OpenRecoveryDialog;
+            }
         }
 
         private void PwdBox_PasswordChanged(object sender, RoutedEventArgs e)
@@ -43,6 +57,16 @@ namespace QuanLyNhanSu_WPF.Views
         {
             base.OnMouseLeftButtonDown(e);
             DragMove();
+        }
+
+        private void OpenRecoveryDialog()
+        {
+            var dialog = new AccountRecoveryWindow
+            {
+                Owner = this
+            };
+
+            dialog.ShowDialog();
         }
     }
 }

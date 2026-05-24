@@ -95,20 +95,73 @@ namespace QuanLyNhanSu_WPF.Repositories
                 (!excludeEmployeeId.HasValue || e.EmployeeID != excludeEmployeeId.Value));
         }
 
+        public Task<bool> DepartmentExistsAsync(int departmentId)
+            => _db.Departments.AnyAsync(d => d.DepartmentID == departmentId);
+
+        public Task<bool> PositionExistsAsync(int positionId)
+            => _db.Positions.AnyAsync(p => p.PositionID == positionId);
+
         public async Task AddAsync(Employee employee)
         {
+            employee.Department = null;
+            employee.Position = null;
             _db.Employees.Add(employee);
             await _db.SaveChangesAsync();
         }
 
         public async Task UpdateAsync(Employee employee)
         {
-            _db.Employees.Update(employee);
+            var existing = await _db.Employees.FindAsync(employee.EmployeeID);
+            if (existing == null)
+            {
+                throw new InvalidOperationException($"Khong tim thay nhan vien co ID {employee.EmployeeID}.");
+            }
+
+            _db.Entry(existing).CurrentValues.SetValues(employee);
             await _db.SaveChangesAsync();
         }
 
         public async Task DeleteAsync(Employee employee)
         {
+            _db.Employees.Remove(employee);
+            await _db.SaveChangesAsync();
+        }
+
+        public async Task DeletePermanentlyAsync(int employeeId)
+        {
+            var employee = await _db.Employees.FirstOrDefaultAsync(e => e.EmployeeID == employeeId);
+            if (employee == null)
+            {
+                return;
+            }
+
+            var relatedUsers = await _db.Users
+                .Where(u => u.EmployeeID == employeeId)
+                .ToListAsync();
+
+            if (relatedUsers.Count > 0)
+            {
+                var relatedUserIds = relatedUsers.Select(u => u.UserID).ToList();
+
+                var auditLogs = await _db.AuditLogs
+                    .Where(log => log.UserID.HasValue && relatedUserIds.Contains(log.UserID.Value))
+                    .ToListAsync();
+                foreach (var log in auditLogs)
+                {
+                    log.UserID = null;
+                }
+
+                var approvedLeaves = await _db.LeaveRequests
+                    .Where(l => l.ApprovedByUserID.HasValue && relatedUserIds.Contains(l.ApprovedByUserID.Value))
+                    .ToListAsync();
+                foreach (var leave in approvedLeaves)
+                {
+                    leave.ApprovedByUserID = null;
+                }
+
+                _db.Users.RemoveRange(relatedUsers);
+            }
+
             _db.Employees.Remove(employee);
             await _db.SaveChangesAsync();
         }

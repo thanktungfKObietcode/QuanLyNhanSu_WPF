@@ -14,137 +14,180 @@
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
-        <!-- Filters -->
         <materialDesign:Card Padding="16" Margin="0,0,0,16" materialDesign:ElevationAssist.Elevation="Dp2">
             <DockPanel LastChildFill="False">
                 <StackPanel Orientation="Horizontal" DockPanel.Dock="Left">
-                    <ComboBox materialDesign:HintAssist.Hint="Tháng" ItemsSource="{Binding Months}" SelectedItem="{Binding SelectedMonth}" Width="80" Margin="0,0,12,0"/>
-                    <ComboBox materialDesign:HintAssist.Hint="Năm" ItemsSource="{Binding Years}" SelectedItem="{Binding SelectedYear}" Width="100" Margin="0,0,16,0"/>
-                    <Button Command="{Binding LoadCommand}" Style="{StaticResource MaterialDesignFlatButton}" Content="XEM BẢNG LƯƠNG" Margin="0,0,12,0"/>
-                    <Button Command="{Binding ExportCommand}" Style="{StaticResource MaterialDesignFlatButton}" Content="📥 XUẤT EXCEL" Foreground="Green"/>
+                    <ComboBox materialDesign:HintAssist.Hint="Thang" ItemsSource="{Binding Months}" SelectedItem="{Binding SelectedMonth}" Width="80" Margin="0,0,12,0"/>
+                    <ComboBox materialDesign:HintAssist.Hint="Nam" ItemsSource="{Binding Years}" SelectedItem="{Binding SelectedYear}" Width="100" Margin="0,0,12,0"/>
+                    <ComboBox materialDesign:HintAssist.Hint="Nhan vien"
+                              Visibility="{Binding IsAdmin, Converter={StaticResource BoolToVis}}"
+                              ItemsSource="{Binding Employees}" DisplayMemberPath="Name"
+                              SelectedItem="{Binding SelectedEmployeeFilter}" Width="220" Margin="0,0,12,0"/>
+                    <Button Command="{Binding LoadCommand}" Style="{StaticResource MaterialDesignFlatButton}" Content="TAI DU LIEU" Margin="0,0,12,0"/>
+                    <Button Command="{Binding ExportDailyCommand}" Style="{StaticResource MaterialDesignFlatButton}" Content="XUAT LUONG NGAY" Margin="0,0,12,0"/>
+                    <Button Command="{Binding ExportMonthlyCommand}" Style="{StaticResource MaterialDesignFlatButton}" Content="XUAT LUONG THANG"/>
                 </StackPanel>
-                
-                <Button Command="{Binding CalculateSalaryCommand}" DockPanel.Dock="Right" 
+
+                <Button Command="{Binding CalculateSalaryCommand}" DockPanel.Dock="Right"
                         Visibility="{Binding IsAdmin, Converter={StaticResource BoolToVis}}"
-                        Style="{StaticResource MaterialDesignRaisedButton}" Background="OrangeRed" BorderBrush="OrangeRed"
-                        Content="➕ TÍNH LƯƠNG TẤT CẢ"/>
+                        Style="{StaticResource MaterialDesignRaisedButton}" Background="#C2410C" BorderBrush="#C2410C"
+                        Content="CHOT LUONG THANG"/>
             </DockPanel>
         </materialDesign:Card>
 
-        <!-- Content Area -->
         <Grid Grid.Row="1">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="350"/>
-            </Grid.ColumnDefinitions>
-
-            <!-- Table (Admin) or List (Employee) -->
-            <materialDesign:Card Grid.Column="0" Margin="0,0,8,0" materialDesign:ElevationAssist.Elevation="Dp1">
-                <Grid>
-                    <DataGrid ItemsSource="{Binding Salaries}" SelectedItem="{Binding SelectedSalary}" 
-                              AutoGenerateColumns="False" IsReadOnly="True"
-                              Visibility="{Binding IsAdmin, Converter={StaticResource BoolToVis}}">
-                        <DataGrid.Columns>
-                            <DataGridTextColumn Header="Nhân viên" Binding="{Binding Employee.Name}" Width="150"/>
-                            <DataGridTextColumn Header="Mã NV" Binding="{Binding Employee.Code}" Width="100"/>
-                            <DataGridTextColumn Header="Lương cơ bản" Binding="{Binding BaseSalary, StringFormat={}{0:N0} ₫}" Width="120"/>
-                            <DataGridTextColumn Header="Phụ cấp" Binding="{Binding Allowances, StringFormat={}{0:N0} ₫}" Width="100"/>
-                            <DataGridTextColumn Header="Hoa hồng" Binding="{Binding Commission, StringFormat={}{0:N0} ₫}" Width="100"/>
-                            <DataGridTextColumn Header="KPI/Thưởng" Binding="{Binding KPIBonus, StringFormat={}{0:N0} ₫}" Width="100"/>
-                            <DataGridTextColumn Header="Lương OT" Binding="{Binding OTSalary, StringFormat={}{0:N0} ₫}" Width="100"/>
-                            <DataGridTextColumn Header="Thực lĩnh" Binding="{Binding NetSalary, StringFormat={}{0:N0} ₫}" Width="120">
-                                <DataGridTextColumn.ElementStyle>
-                                    <Style TargetType="TextBlock">
-                                        <Setter Property="FontWeight" Value="Bold"/><Setter Property="Foreground" Value="Green"/>
-                                    </Style>
-                                </DataGridTextColumn.ElementStyle>
-                            </DataGridTextColumn>
-                            <DataGridTextColumn Header="Ngày chi" Binding="{Binding PaidDate, StringFormat=dd/MM/yyyy}" Width="*"/>
-                        </DataGrid.Columns>
-                    </DataGrid>
-
-                    <!-- Employee History View -->
-                    <StackPanel Visibility="{Binding IsAdmin, Converter={StaticResource InvBoolToVis}}" Margin="16">
-                        <TextBlock Text="Lịch sử nhận lương" FontWeight="Bold" FontSize="16" Margin="0,0,0,12"/>
-                        <DataGrid ItemsSource="{Binding MySalaryHistory}" AutoGenerateColumns="False" IsReadOnly="True" MaxHeight="500">
-                            <DataGrid.Columns>
-                                <DataGridTextColumn Header="Tháng/Năm" Binding="{Binding StringFormat={}{0}/{1}, Path=Month, Mode=OneWay}" Width="100"/>
-                                <DataGridTextColumn Header="Lương CB" Binding="{Binding BaseSalary, StringFormat={}{0:N0}}" Width="100"/>
-                                <DataGridTextColumn Header="Phụ cấp" Binding="{Binding Allowances, StringFormat={}{0:N0}}" Width="100"/>
-                                <DataGridTextColumn Header="Thực nhận" Binding="{Binding NetSalary, StringFormat={}{0:N0} ₫}" Width="*"/>
-                            </DataGrid.Columns>
-                        </DataGrid>
-                    </StackPanel>
-                    
-                    <ProgressBar IsIndeterminate="True" Visibility="{Binding IsLoading, Converter={StaticResource BoolToVis}}" VerticalAlignment="Top"/>
-                </Grid>
-            </materialDesign:Card>
-
-            <!-- Payslip Preview Side -->
-            <materialDesign:Card Grid.Column="1" Margin="8,0,0,0" Padding="16" materialDesign:ElevationAssist.Elevation="Dp2">
-                <StackPanel>
-                    <TextBlock Text="PHIẾU LƯƠNG CHI TIẾT" FontWeight="Bold" HorizontalAlignment="Center" Margin="0,0,0,16"/>
-                    <Separator Margin="0,0,0,16"/>
-                    
-                    <DockPanel Margin="0,0,0,8">
-                        <TextBlock Text="Nhân viên:"/>
-                        <TextBlock Text="{Binding SelectedSalary.Employee.Name, FallbackValue='--'}" FontWeight="Bold" DockPanel.Dock="Right" HorizontalAlignment="Right"/>
-                    </DockPanel>
-                    <DockPanel Margin="0,0,0,8">
-                        <TextBlock Text="Kỳ lương:"/>
-                        <TextBlock FontWeight="Bold" DockPanel.Dock="Right" HorizontalAlignment="Right">
-                            <TextBlock.Text>
-                                <MultiBinding StringFormat="{}Tháng {0}/{1}">
-                                    <Binding Path="SelectedSalary.Month" FallbackValue="--"/>
-                                    <Binding Path="SelectedSalary.Year" FallbackValue="--"/>
-                                </MultiBinding>
-                            </TextBlock.Text>
-                        </TextBlock>
-                    </DockPanel>
-                    
-                    <Separator Margin="0,8"/>
-                    
-                    <DockPanel Margin="0,4">
-                        <TextBlock Text="(+) Lương cơ bản"/>
-                        <TextBlock Text="{Binding SelectedSalary.BaseSalary, StringFormat={}{0:N0} ₫}" DockPanel.Dock="Right" HorizontalAlignment="Right"/>
-                    </DockPanel>
-                    <DockPanel Margin="0,4">
-                        <TextBlock Text="(+) Phụ cấp (Xăng xe, ăn trưa...)"/>
-                        <TextBlock Text="{Binding SelectedSalary.Allowances, StringFormat={}{0:N0} ₫}" DockPanel.Dock="Right" HorizontalAlignment="Right" Foreground="Green"/>
-                    </DockPanel>
-                    <DockPanel Margin="0,4">
-                        <TextBlock Text="(+) KPI"/>
-                        <TextBlock Text="{Binding SelectedSalary.KPIBonus, StringFormat={}{0:N0} ₫}" DockPanel.Dock="Right" HorizontalAlignment="Right" Foreground="Green"/>
-                    </DockPanel>
-                    <DockPanel Margin="0,4">
-                        <TextBlock Text="(+) Hoa hồng"/>
-                        <TextBlock Text="{Binding SelectedSalary.Commission, StringFormat={}{0:N0} ₫}" DockPanel.Dock="Right" HorizontalAlignment="Right" Foreground="Green"/>
-                    </DockPanel>
-                    <DockPanel Margin="0,4">
-                        <TextBlock Text="(+) Lương tăng ca (OT)"/>
-                        <TextBlock Text="{Binding SelectedSalary.OTSalary, StringFormat={}{0:N0} ₫}" DockPanel.Dock="Right" HorizontalAlignment="Right" Foreground="Green"/>
-                    </DockPanel>
-                    <DockPanel Margin="0,4">
-                        <TextBlock Text="(+) Thưởng khác"/>
-                        <TextBlock Text="{Binding SelectedSalary.Bonus, StringFormat={}{0:N0} ₫}" DockPanel.Dock="Right" HorizontalAlignment="Right" Foreground="Green"/>
-                    </DockPanel>
-                    <DockPanel Margin="0,4">
-                        <TextBlock Text="(-) Khấu trừ / Thuế"/>
-                        <TextBlock Text="{Binding SelectedSalary.Deductions, StringFormat={}{0:N0} ₫}" DockPanel.Dock="Right" HorizontalAlignment="Right" Foreground="Red"/>
-                    </DockPanel>
-                    
-                    <Separator Margin="0,16"/>
-                    
-                    <materialDesign:Card Background="{DynamicResource PrimaryHueDarkBrush}" Padding="12">
-                        <DockPanel>
-                            <TextBlock Text="THỰC LĨNH" Foreground="White" FontWeight="Bold"/>
-                            <TextBlock Text="{Binding SelectedSalary.NetSalary, StringFormat={}{0:N0} ₫}" Foreground="White" FontWeight="Bold" FontSize="20" DockPanel.Dock="Right" HorizontalAlignment="Right"/>
-                        </DockPanel>
+            <TabControl>
+                <TabItem Header="Luong Ngay">
+                    <materialDesign:Card Margin="0,8,0,0" Padding="8">
+                        <Grid>
+                            <DataGrid ItemsSource="{Binding DailySalaryEntries}" SelectedItem="{Binding SelectedDailySalaryEntry}" AutoGenerateColumns="False" IsReadOnly="True">
+                                <DataGrid.Columns>
+                                    <DataGridTextColumn Header="Ngay" Binding="{Binding Date, StringFormat=dd/MM/yyyy}" Width="100"/>
+                                    <DataGridTextColumn Header="Nhan vien" Binding="{Binding EmployeeName}" Width="180"/>
+                                    <DataGridTextColumn Header="Trang thai" Binding="{Binding AttendanceStatus}" Width="110"/>
+                                    <DataGridTextColumn Header="Cong" Binding="{Binding WorkUnits, StringFormat={}{0:N2}}" Width="80"/>
+                                    <DataGridTextColumn Header="Gio lam" Binding="{Binding WorkingHours, StringFormat={}{0:N2}}" Width="90"/>
+                                    <DataGridTextColumn Header="Tang ca" Binding="{Binding OvertimeHours, StringFormat={}{0:N1}}" Width="80"/>
+                                    <DataGridTextColumn Header="Tong nhan" Binding="{Binding TotalAmount, StringFormat={}{0:N0} d}" Width="130"/>
+                                    <DataGridTextColumn Header="Ghi chu" Binding="{Binding Note}" Width="*"/>
+                                </DataGrid.Columns>
+                            </DataGrid>
+                            <ProgressBar IsIndeterminate="True" Visibility="{Binding IsLoading, Converter={StaticResource BoolToVis}}" VerticalAlignment="Top"/>
+                        </Grid>
                     </materialDesign:Card>
-                    
-                    <Button Margin="0,24,0,0" Style="{StaticResource MaterialDesignOutlinedButton}" Content="XUẤT PDF PHIẾU LƯƠNG" IsEnabled="False" ToolTip="Tính năng đang phát triển"/>
-                </StackPanel>
-            </materialDesign:Card>
+                </TabItem>
+
+                <TabItem Header="Luong Thang Tam Tinh">
+                    <materialDesign:Card Margin="0,8,0,0" Padding="8">
+                        <Grid>
+                            <DataGrid ItemsSource="{Binding MonthlySalarySummaries}" SelectedItem="{Binding SelectedMonthlySalarySummary}" AutoGenerateColumns="False" IsReadOnly="True">
+                                <DataGrid.Columns>
+                                    <DataGridTextColumn Header="Nhan vien" Binding="{Binding EmployeeName}" Width="180"/>
+                                    <DataGridTextColumn Header="Ma NV" Binding="{Binding EmployeeCode}" Width="90"/>
+                                    <DataGridTextColumn Header="Phong ban" Binding="{Binding DepartmentName}" Width="140"/>
+                                    <DataGridTextColumn Header="Tong cong" Binding="{Binding TotalWorkUnits, StringFormat={}{0:N2}}" Width="90"/>
+                                    <DataGridTextColumn Header="Tong gio lam" Binding="{Binding TotalWorkingHours, StringFormat={}{0:N2}}" Width="100"/>
+                                    <DataGridTextColumn Header="Tong OT" Binding="{Binding TotalOvertimeHours, StringFormat={}{0:N1}}" Width="90"/>
+                                    <DataGridTextColumn Header="Luong theo ngay" Binding="{Binding DailySalaryTotal, StringFormat={}{0:N0} d}" Width="130"/>
+                                    <DataGridTextColumn Header="Luong OT" Binding="{Binding OvertimeSalaryTotal, StringFormat={}{0:N0} d}" Width="110"/>
+                                    <DataGridTextColumn Header="Phu cap" Binding="{Binding FixedAllowances, StringFormat={}{0:N0} d}" Width="110"/>
+                                    <DataGridTextColumn Header="Tong tam tinh" Binding="{Binding ProjectedNetSalary, StringFormat={}{0:N0} d}" Width="130"/>
+                                    <DataGridTextColumn Header="Luong da chot" Binding="{Binding OfficialNetSalary, StringFormat={}{0:N0} d}" Width="130"/>
+                                </DataGrid.Columns>
+                            </DataGrid>
+                            <ProgressBar IsIndeterminate="True" Visibility="{Binding IsLoading, Converter={StaticResource BoolToVis}}" VerticalAlignment="Top"/>
+                        </Grid>
+                    </materialDesign:Card>
+                </TabItem>
+
+                <TabItem Header="Bang Luong Thang">
+                    <Grid Margin="0,8,0,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="320"/>
+                        </Grid.ColumnDefinitions>
+
+                        <materialDesign:Card Grid.Column="0" Margin="0,0,8,0" Padding="8">
+                            <Grid>
+                                <DataGrid ItemsSource="{Binding Salaries}" SelectedItem="{Binding SelectedSalary}" AutoGenerateColumns="False" IsReadOnly="True">
+                                    <DataGrid.Columns>
+                                        <DataGridTextColumn Header="Nhan vien" Binding="{Binding Employee.Name}" Width="170"/>
+                                        <DataGridTextColumn Header="Ma NV" Binding="{Binding Employee.Code}" Width="90"/>
+                                        <DataGridTextColumn Header="Luong co ban" Binding="{Binding BaseSalary, StringFormat={}{0:N0} d}" Width="120"/>
+                                        <DataGridTextColumn Header="Phu cap" Binding="{Binding Allowances, StringFormat={}{0:N0} d}" Width="110"/>
+                                        <DataGridTextColumn Header="KPI" Binding="{Binding KPIBonus, StringFormat={}{0:N0} d}" Width="100"/>
+                                        <DataGridTextColumn Header="Hoa hong" Binding="{Binding Commission, StringFormat={}{0:N0} d}" Width="100"/>
+                                        <DataGridTextColumn Header="Luong OT" Binding="{Binding OTSalary, StringFormat={}{0:N0} d}" Width="100"/>
+                                        <DataGridTextColumn Header="Thuc linh" Binding="{Binding NetSalary, StringFormat={}{0:N0} d}" Width="120"/>
+                                    </DataGrid.Columns>
+                                </DataGrid>
+                                <ProgressBar IsIndeterminate="True" Visibility="{Binding IsLoading, Converter={StaticResource BoolToVis}}" VerticalAlignment="Top"/>
+                            </Grid>
+                        </materialDesign:Card>
+
+                        <materialDesign:Card Grid.Column="1" Margin="8,0,0,0" Padding="16">
+                            <StackPanel>
+                                <TextBlock Text="Chi Tiet Luong Thang" FontWeight="Bold" FontSize="16" Margin="0,0,0,16"/>
+                                <TextBlock Text="Chon mot dong trong bang luong de xem chi tiet."
+                                           Opacity="0.6"
+                                           Margin="0,0,0,12">
+                                    <TextBlock.Style>
+                                        <Style TargetType="TextBlock">
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding SelectedSalary}" Value="{x:Null}">
+                                                    <Setter Property="Visibility" Value="Visible"/>
+                                                </DataTrigger>
+                                                <DataTrigger Binding="{Binding SelectedSalary}" Value="{x:Null}">
+                                                    <Setter Property="Visibility" Value="Visible"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </TextBlock.Style>
+                                </TextBlock>
+                                <StackPanel>
+                                    <StackPanel.Style>
+                                        <Style TargetType="StackPanel">
+                                            <Setter Property="Visibility" Value="Visible"/>
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding SelectedSalary}" Value="{x:Null}">
+                                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </StackPanel.Style>
+                                    <DockPanel Margin="0,0,0,8">
+                                        <TextBlock Text="Nhan vien"/>
+                                        <TextBlock Text="{Binding SelectedSalary.Employee.Name, TargetNullValue='--'}" FontWeight="Bold" DockPanel.Dock="Right"/>
+                                    </DockPanel>
+                                    <DockPanel Margin="0,0,0,8">
+                                        <TextBlock Text="Ky luong"/>
+                                        <TextBlock DockPanel.Dock="Right" FontWeight="Bold">
+                                            <TextBlock.Text>
+                                                <MultiBinding StringFormat="{}Thang {0}/{1}">
+                                                    <Binding Path="SelectedSalary.Month" TargetNullValue="--"/>
+                                                    <Binding Path="SelectedSalary.Year" TargetNullValue="--"/>
+                                                </MultiBinding>
+                                            </TextBlock.Text>
+                                        </TextBlock>
+                                    </DockPanel>
+                                    <Separator Margin="0,8"/>
+                                    <DockPanel Margin="0,4">
+                                        <TextBlock Text="Luong co ban"/>
+                                        <TextBlock Text="{Binding SelectedSalary.BaseSalary, StringFormat={}{0:N0} d, TargetNullValue='--'}" DockPanel.Dock="Right"/>
+                                    </DockPanel>
+                                    <DockPanel Margin="0,4">
+                                        <TextBlock Text="Phu cap"/>
+                                        <TextBlock Text="{Binding SelectedSalary.Allowances, StringFormat={}{0:N0} d, TargetNullValue='--'}" DockPanel.Dock="Right"/>
+                                    </DockPanel>
+                                    <DockPanel Margin="0,4">
+                                        <TextBlock Text="KPI"/>
+                                        <TextBlock Text="{Binding SelectedSalary.KPIBonus, StringFormat={}{0:N0} d, TargetNullValue='--'}" DockPanel.Dock="Right"/>
+                                    </DockPanel>
+                                    <DockPanel Margin="0,4">
+                                        <TextBlock Text="Hoa hong"/>
+                                        <TextBlock Text="{Binding SelectedSalary.Commission, StringFormat={}{0:N0} d, TargetNullValue='--'}" DockPanel.Dock="Right"/>
+                                    </DockPanel>
+                                    <DockPanel Margin="0,4">
+                                        <TextBlock Text="Luong OT"/>
+                                        <TextBlock Text="{Binding SelectedSalary.OTSalary, StringFormat={}{0:N0} d, TargetNullValue='--'}" DockPanel.Dock="Right"/>
+                                    </DockPanel>
+                                    <DockPanel Margin="0,4">
+                                        <TextBlock Text="Khau tru"/>
+                                        <TextBlock Text="{Binding SelectedSalary.Deductions, StringFormat={}{0:N0} d, TargetNullValue='--'}" DockPanel.Dock="Right"/>
+                                    </DockPanel>
+                                    <Separator Margin="0,12"/>
+                                    <materialDesign:Card Background="{DynamicResource PrimaryHueDarkBrush}" Padding="12">
+                                        <DockPanel>
+                                            <TextBlock Text="Thuc linh" Foreground="White" FontWeight="Bold"/>
+                                            <TextBlock Text="{Binding SelectedSalary.NetSalary, StringFormat={}{0:N0} d, TargetNullValue='--'}" Foreground="White" FontWeight="Bold" DockPanel.Dock="Right"/>
+                                        </DockPanel>
+                                    </materialDesign:Card>
+                                </StackPanel>
+                            </StackPanel>
+                        </materialDesign:Card>
+                    </Grid>
+                </TabItem>
+            </TabControl>
         </Grid>
     </Grid>
 </UserControl>

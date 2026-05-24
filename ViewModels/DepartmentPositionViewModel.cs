@@ -86,6 +86,30 @@ namespace QuanLyNhanSu_WPF.ViewModels
             var dept = await db.Departments.FindAsync(SelectedDepartment.DepartmentID);
             if (dept != null)
             {
+                var linkedEmployees = await db.Employees
+                    .Where(e => e.DepartmentID == dept.DepartmentID)
+                    .ToListAsync();
+
+                if (linkedEmployees.Count > 0)
+                {
+                    var confirm = MessageBox.Show(
+                        $"Phòng ban này đang được gán cho {linkedEmployees.Count} nhân viên.\n" +
+                        "Nếu tiếp tục, phòng ban của các nhân viên đó sẽ được xóa khỏi hồ sơ.\n\n" +
+                        "Bạn có muốn tiếp tục xóa phòng ban không?",
+                        "Xác nhận xóa phòng ban",
+                        MessageBoxButton.YesNo,
+                        MessageBoxImage.Warning);
+
+                    if (confirm != MessageBoxResult.Yes)
+                        return;
+
+                    foreach (var employee in linkedEmployees)
+                    {
+                        employee.DepartmentID = null;
+                        employee.Department = null;
+                    }
+                }
+
                 db.Departments.Remove(dept);
                 await db.SaveChangesAsync();
                 await LoadDataAsync();
@@ -110,6 +134,30 @@ namespace QuanLyNhanSu_WPF.ViewModels
             var pos = await db.Positions.FindAsync(SelectedPosition.PositionID);
             if (pos != null)
             {
+                var linkedEmployees = await db.Employees
+                    .Where(e => e.PositionID == pos.PositionID)
+                    .ToListAsync();
+
+                if (linkedEmployees.Count > 0)
+                {
+                    var confirm = MessageBox.Show(
+                        $"Chức vụ này đang được gán cho {linkedEmployees.Count} nhân viên.\n" +
+                        "Nếu tiếp tục, chức vụ của các nhân viên đó sẽ được xóa khỏi hồ sơ.\n\n" +
+                        "Bạn có muốn tiếp tục xóa chức vụ không?",
+                        "Xác nhận xóa chức vụ",
+                        MessageBoxButton.YesNo,
+                        MessageBoxImage.Warning);
+
+                    if (confirm != MessageBoxResult.Yes)
+                        return;
+
+                    foreach (var employee in linkedEmployees)
+                    {
+                        employee.PositionID = null;
+                        employee.Position = null;
+                    }
+                }
+
                 db.Positions.Remove(pos);
                 await db.SaveChangesAsync();
                 await LoadDataAsync();

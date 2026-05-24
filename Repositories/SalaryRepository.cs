@@ -29,11 +29,16 @@ namespace QuanLyNhanSu_WPF.Repositories
                 .ToListAsync();
 
         public async Task<IEnumerable<Salary>> GetByMonthAsync(int month, int year)
-            => await _db.Salaries
+        {
+            var list = await _db.Salaries
                 .Include(s => s.Employee).ThenInclude(e => e.Department)
                 .Where(s => s.Month == month && s.Year == year)
-                .OrderBy(s => s.Employee.Name)
                 .ToListAsync();
+
+            return list
+                .OrderBy(s => s.Employee?.Name ?? string.Empty)
+                .ToList();
+        }
 
         public async Task<Salary> GetLatestByEmployeeAsync(int employeeId)
             => await _db.Salaries

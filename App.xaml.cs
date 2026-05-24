@@ -31,7 +31,7 @@ namespace QuanLyNhanSu_WPF
             try { db.Database.ExecuteSqlRaw("IF COL_LENGTH('Employees', 'BaseCommissionRate') IS NULL ALTER TABLE Employees ADD BaseCommissionRate float NOT NULL CONSTRAINT DF_Employees_BaseCommissionRate DEFAULT 0"); } catch { }
 
             var admin = db.Users.FirstOrDefault(u => u.Username == "admin");
-            PasswordHasher.HashPassword("admin123", out var hash, out var salt);
+            PasswordHasher.HashPassword("Admin@123", out var hash, out var salt);
 
             if (admin == null)
             {
@@ -46,18 +46,10 @@ namespace QuanLyNhanSu_WPF
                 };
                 db.Users.Add(admin);
             }
-            else
-            {
-                admin.PasswordHash = hash;
-                admin.Salt = salt;
-                admin.FailedLoginAttempts = 0;
-                admin.LockoutEnd = null;
-                db.Users.Update(admin);
-            }
 
             db.SaveChanges();
 
-            if (!db.Positions.Any(p => p.PosName == "Sale Media"))
+            if (!db.Positions.Any())
             {
                 db.Positions.AddRange(
                     new Position { PosName = "Sale Media", PosCode = "SALE_MEDIA", BaseSalary = 8000000 },
@@ -76,22 +68,45 @@ namespace QuanLyNhanSu_WPF
         {
             var loginView = new Views.LoginView();
             var vm = new ViewModels.LoginViewModel();
+            bool loginSucceeded = false;
 
             vm.LoginSucceeded += () =>
             {
+                loginSucceeded = true;
                 var mainWindow = new MainWindow();
                 var mainVm = new ViewModels.MainViewModel();
 
+                // If user closes MainWindow via X button (not logout), shut down the app
+                bool isLoggingOut = false;
+
                 mainVm.LogoutRequested += () =>
                 {
+                    isLoggingOut = true;
                     mainWindow.Close();
                     ShowLoginWindow();
+                };
+
+                mainWindow.Closed += (s, args) =>
+                {
+                    if (!isLoggingOut)
+                    {
+                        Current.Shutdown();
+                    }
                 };
 
                 mainWindow.DataContext = mainVm;
                 Current.MainWindow = mainWindow;
                 mainWindow.Show();
                 loginView.Close();
+            };
+
+            // If login window is closed without successful login, shut down the app
+            loginView.Closed += (s, args) =>
+            {
+                if (!loginSucceeded)
+                {
+                    Current.Shutdown();
+                }
             };
 
             loginView.DataContext = vm;

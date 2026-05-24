@@ -1,5 +1,7 @@
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
@@ -20,15 +22,38 @@ namespace QuanLyNhanSu_WPF.ViewModels
         private ObservableCollection<Department> _departments = new();
         private ObservableCollection<Position> _positions = new();
 
-        public Employee Employee { get => _employee; set => SetProperty(ref _employee, value); }
+        public Employee Employee
+        {
+            get => _employee;
+            set
+            {
+                if (SetProperty(ref _employee, value))
+                {
+                    OnPropertyChanged(nameof(IsSalesPosition));
+                }
+            }
+        }
+
         public bool IsEditMode { get => _isEditMode; set => SetProperty(ref _isEditMode, value); }
         public bool IsSaving { get => _isSaving; set => SetProperty(ref _isSaving, value); }
         public string ErrorMessage { get => _errorMessage; set => SetProperty(ref _errorMessage, value); }
         public ObservableCollection<Department> Departments { get => _departments; set => SetProperty(ref _departments, value); }
         public ObservableCollection<Position> Positions { get => _positions; set => SetProperty(ref _positions, value); }
-        public bool IsSalesPosition => Employee?.Position?.PosName?.ToLower().Contains("sale") == true || Employee?.Position?.PosName?.ToLower().Contains("kinh doanh") == true;
 
-        public ObservableCollection<string> GenderOptions { get; } = new() { "Nam", "Nữ", "Khác" };
+        public bool IsSalesPosition
+        {
+            get
+            {
+                var positionName = Positions
+                    .FirstOrDefault(p => p.PositionID == Employee?.PositionID)?
+                    .PosName?
+                    .ToLowerInvariant();
+
+                return positionName?.Contains("sale") == true || positionName?.Contains("kinh doanh") == true;
+            }
+        }
+
+        public ObservableCollection<string> GenderOptions { get; } = new() { "Nam", "Nu", "Khac" };
         public ObservableCollection<EmployeeStatus> StatusOptions { get; } = new()
         { EmployeeStatus.Active, EmployeeStatus.Inactive };
         public ObservableCollection<EmploymentType> EmploymentTypeOptions { get; } = new()
@@ -40,14 +65,8 @@ namespace QuanLyNhanSu_WPF.ViewModels
 
         public event Action<bool> Closed;
 
-        private readonly EmployeeService _service;
-        private readonly ApplicationDbContext _db;
-
         public EmployeeFormViewModel(Employee employee = null)
         {
-            _db = new ApplicationDbContext(DbContextFactory.CreateOptions());
-            _service = new EmployeeService(_db);
-
             IsEditMode = employee != null && employee.EmployeeID > 0;
             Employee = employee ?? new Employee { HireDate = DateTime.Today, Status = EmployeeStatus.Active };
 
@@ -55,17 +74,30 @@ namespace QuanLyNhanSu_WPF.ViewModels
             CancelCommand = new RelayCommand(_ => Closed?.Invoke(false));
             BrowsePhotoCommand = new RelayCommand(_ => BrowsePhoto());
 
-            Task.Run(LoadDropdownsAsync);
+            _ = LoadDropdownsAsync();
         }
 
         private async Task LoadDropdownsAsync()
         {
-            var depts = await _db.Departments.ToListAsync();
-            var positions = await _db.Positions.ToListAsync();
+            await using var db = new ApplicationDbContext(DbContextFactory.CreateOptions());
+            var depts = await db.Departments.AsNoTracking().ToListAsync();
+            var positions = await db.Positions.AsNoTracking().ToListAsync();
+
             Application.Current?.Dispatcher.Invoke(() =>
             {
-                Departments.Clear(); foreach (var d in depts) Departments.Add(d);
-                Positions.Clear(); foreach (var p in positions) Positions.Add(p);
+                Departments.Clear();
+                foreach (var d in depts)
+                {
+                    Departments.Add(d);
+                }
+
+                Positions.Clear();
+                foreach (var p in positions)
+                {
+                    Positions.Add(p);
+                }
+
+                OnPropertyChanged(nameof(IsSalesPosition));
             });
         }
 
@@ -73,21 +105,79 @@ namespace QuanLyNhanSu_WPF.ViewModels
         {
             ErrorMessage = null;
             IsSaving = true;
+
             try
             {
                 (bool success, string error) result;
+                var service = CreateEmployeeService();
                 if (IsEditMode)
-                    result = await _service.UpdateEmployeeAsync(Employee);
+                {
+                    result = await service.UpdateEmployeeAsync(Employee);
+                }
                 else
-                    result = await _service.AddEmployeeAsync(Employee);
+                {
+                    result = await service.AddEmployeeAsync(Employee);
+                }
 
                 if (result.success)
+                {
+                    var actionText = IsEditMode ? "cap nhat" : "them moi";
+                    MessageBox.Show(
+                        $"Da {actionText} thong tin nhan vien '{Employee.Name}' thanh cong.",
+                        "Thanh cong",
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Information);
                     Closed?.Invoke(true);
+                }
                 else
+                {
                     ErrorMessage = result.error;
+                    MessageBox.Show(
+                        result.error,
+                        "Khong the luu thong tin",
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Warning);
+                }
             }
-            catch (Exception ex) { ErrorMessage = $"Lỗi: {ex.Message}"; }
-            finally { IsSaving = false; }
+            catch (Exception ex)
+            {
+                ErrorMessage = BuildDetailedErrorMessage(ex);
+                MessageBox.Show(
+                    ErrorMessage,
+                    "Chi tiet loi luu nhan vien",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error);
+            }
+            finally
+            {
+                IsSaving = false;
+            }
+        }
+
+        private static string BuildDetailedErrorMessage(Exception ex)
+        {
+            var lines = new List<string>();
+            var current = ex;
+            var level = 0;
+
+            while (current != null)
+            {
+                var prefix = level == 0 ? "Loi" : $"Inner {level}";
+                lines.Add($"{prefix}: {current.Message}");
+                current = current.InnerException;
+                level++;
+            }
+
+            if (ex is DbUpdateException dbUpdateException && dbUpdateException.Entries.Count > 0)
+            {
+                foreach (var entry in dbUpdateException.Entries)
+                {
+                    lines.Add($"Entity: {entry.Metadata.DisplayName()}");
+                    lines.Add($"State: {entry.State}");
+                }
+            }
+
+            return string.Join(Environment.NewLine, lines);
         }
 
         private void BrowsePhoto()
@@ -95,13 +185,20 @@ namespace QuanLyNhanSu_WPF.ViewModels
             var dlg = new Microsoft.Win32.OpenFileDialog
             {
                 Filter = "Image Files|*.jpg;*.jpeg;*.png;*.bmp",
-                Title = "Chọn ảnh nhân viên"
+                Title = "Chon anh nhan vien"
             };
+
             if (dlg.ShowDialog() == true)
             {
-                var savedPath = _service.SavePhoto(dlg.FileName, Employee.EmployeeID);
-                if (savedPath != null) Employee.Photo = savedPath;
+                var savedPath = CreateEmployeeService().SavePhoto(dlg.FileName, Employee.EmployeeID);
+                if (savedPath != null)
+                {
+                    Employee.Photo = savedPath;
+                }
             }
         }
+
+        private static EmployeeService CreateEmployeeService()
+            => new(new ApplicationDbContext(DbContextFactory.CreateOptions()));
     }
 }

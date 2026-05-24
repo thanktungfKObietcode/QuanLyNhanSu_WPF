@@ -16,7 +16,10 @@ namespace QuanLyNhanSu_WPF.Repositories
         public AttendanceRepository(ApplicationDbContext db) => _db = db;
 
         public async Task<Attendance> GetByIdAsync(int id)
-            => await _db.Attendances.FindAsync(id);
+            => await _db.Attendances
+                .Include(a => a.Employee)
+                .ThenInclude(e => e.Department)
+                .FirstOrDefaultAsync(a => a.AttendanceID == id);
 
         public async Task<IEnumerable<Attendance>> GetByEmployeeAsync(int employeeId, DateTime from, DateTime to)
         {
@@ -35,25 +38,32 @@ namespace QuanLyNhanSu_WPF.Repositories
             var records = await _db.Attendances
                 .Include(a => a.Employee).ThenInclude(e => e.Department)
                 .Where(a => a.Date >= from && a.Date <= to)
-                .OrderByDescending(a => a.Date).ThenBy(a => a.Employee.Name)
                 .ToListAsync();
 
             NormalizeStatuses(records);
-            return records;
+            return records
+                .OrderByDescending(a => a.Date)
+                .ThenBy(a => a.Employee?.Name ?? string.Empty)
+                .ToList();
         }
 
         public async Task<Attendance> GetByEmployeeAndDateAsync(int employeeId, DateTime date)
         {
             var record = await _db.Attendances
+                .Include(a => a.Employee)
                 .FirstOrDefaultAsync(a => a.EmployeeID == employeeId && a.Date.Date == date.Date);
 
             if (record != null)
-            {
                 record.Status = AttendanceStatuses.Normalize(record.Status);
-            }
 
             return record;
         }
+
+        public Task<bool> ExistsForEmployeeAndDateAsync(int employeeId, DateTime date, int? excludeAttendanceId = null)
+            => _db.Attendances.AnyAsync(a =>
+                a.EmployeeID == employeeId &&
+                a.Date.Date == date.Date &&
+                (!excludeAttendanceId.HasValue || a.AttendanceID != excludeAttendanceId.Value));
 
         public async Task<int> GetPresentTodayCountAsync()
         {
@@ -74,9 +84,7 @@ namespace QuanLyNhanSu_WPF.Repositories
             var total = await _db.Attendances
                 .CountAsync(a => a.Date.Month == month && a.Date.Year == year);
             if (total == 0)
-            {
                 return 0;
-            }
 
             var present = await _db.Attendances
                 .CountAsync(a => a.Date.Month == month && a.Date.Year == year
@@ -99,13 +107,36 @@ namespace QuanLyNhanSu_WPF.Repositories
 
         public async Task AddAsync(Attendance attendance)
         {
+            attendance.Employee = null;
+            attendance.Status = AttendanceStatuses.Normalize(attendance.Status);
             _db.Attendances.Add(attendance);
             await _db.SaveChangesAsync();
         }
 
         public async Task UpdateAsync(Attendance attendance)
         {
-            _db.Attendances.Update(attendance);
+            var existing = await _db.Attendances.FindAsync(attendance.AttendanceID);
+            if (existing == null)
+                throw new InvalidOperationException($"Khong tim thay ban ghi cham cong co ID {attendance.AttendanceID}.");
+
+            existing.EmployeeID = attendance.EmployeeID;
+            existing.Date = attendance.Date.Date;
+            existing.CheckIn = attendance.CheckIn;
+            existing.CheckOut = attendance.CheckOut;
+            existing.Status = AttendanceStatuses.Normalize(attendance.Status);
+            existing.OvertimeHours = attendance.OvertimeHours;
+            existing.Note = attendance.Note;
+
+            await _db.SaveChangesAsync();
+        }
+
+        public async Task DeleteAsync(int attendanceId)
+        {
+            var existing = await _db.Attendances.FindAsync(attendanceId);
+            if (existing == null)
+                return;
+
+            _db.Attendances.Remove(existing);
             await _db.SaveChangesAsync();
         }
 
@@ -133,9 +164,7 @@ namespace QuanLyNhanSu_WPF.Repositories
         private static void NormalizeStatuses(IEnumerable<Attendance> records)
         {
             foreach (var record in records)
-            {
                 record.Status = AttendanceStatuses.Normalize(record.Status);
-            }
         }
     }
 }

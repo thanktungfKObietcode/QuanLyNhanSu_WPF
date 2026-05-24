@@ -11,7 +11,7 @@ namespace QuanLyNhanSu_WPF.Models
         OnLeave
     }
 
-    // Employment type determines salary factor
+    
     public enum EmploymentType
     {
         Permanent,   // Full salary
@@ -50,9 +50,9 @@ namespace QuanLyNhanSu_WPF.Models
 
         public EmployeeStatus Status { get; set; } = EmployeeStatus.Active;
         public EmploymentType EmploymentType { get; set; } = EmploymentType.Permanent;
-        // Total experience in days (e.g., previous jobs, internships)
+     
         public int ExperienceDays { get; set; }
-        // Highest degree or certification
+        
         public string Degree { get; set; }
 
         public int? DepartmentID { get; set; }
