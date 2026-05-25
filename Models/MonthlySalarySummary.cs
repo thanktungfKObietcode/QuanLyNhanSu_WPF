@@ -14,6 +14,10 @@ namespace QuanLyNhanSu_WPF.Models
         public decimal DailySalaryTotal { get; set; }
         public decimal OvertimeSalaryTotal { get; set; }
         public decimal FixedAllowances { get; set; }
+        public decimal KPIBonus { get; set; }
+        public decimal Commission { get; set; }
+        public decimal Bonus { get; set; }
+        public decimal Deductions { get; set; }
         public decimal ProjectedNetSalary { get; set; }
         public decimal? OfficialNetSalary { get; set; }
         public decimal? OfficialBaseSalary { get; set; }

@@ -2,9 +2,11 @@ using System;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Windows.Input;
+using System.Threading.Tasks;
 using QuanLyNhanSu_WPF.Helpers;
 using QuanLyNhanSu_WPF.Models;
 using QuanLyNhanSu_WPF.Services;
+using QuanLyNhanSu_WPF.Data;
 
 namespace QuanLyNhanSu_WPF.ViewModels
 {
@@ -66,6 +68,25 @@ namespace QuanLyNhanSu_WPF.ViewModels
             // Navigate to default dashboard
             var defaultKey = SessionManager.Instance.CurrentUser?.Role == UserRole.Admin ? "AdminDashboard" : "EmployeeDashboard";
             NavigateToKey(defaultKey);
+
+            if (SessionManager.Instance.CurrentUser?.Role == UserRole.Admin)
+            {
+                _ = CheckBirthdayEmailsAsync();
+            }
+        }
+
+        private async Task CheckBirthdayEmailsAsync()
+        {
+            try
+            {
+                var db = new ApplicationDbContext(DbContextFactory.CreateOptions());
+                var emailService = new EmailService(db);
+                await emailService.SendBirthdayEmailsAsync();
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Birthday email error: {ex.Message}");
+            }
         }
 
         public event Action LogoutRequested;
@@ -82,6 +103,7 @@ namespace QuanLyNhanSu_WPF.ViewModels
                 MenuItems.Add(new MenuItemViewModel { Title = "📅 Chấm công", Icon = "CalendarCheck", ViewKey = "Attendance" });
                 MenuItems.Add(new MenuItemViewModel { Title = "📝 Duyệt nghỉ phép", Icon = "ClipboardCheck", ViewKey = "LeaveApproval" });
                 MenuItems.Add(new MenuItemViewModel { Title = "💰 Quản lý lương", Icon = "CashMultiple", ViewKey = "SalaryManagement" });
+                MenuItems.Add(new MenuItemViewModel { Title = "📧 Trung tâm Email", Icon = "EmailOutline", ViewKey = "EmailCenter" });
             }
             else if (role == UserRole.Employee)
             {

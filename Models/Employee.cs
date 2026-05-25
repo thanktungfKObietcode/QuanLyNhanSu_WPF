@@ -51,7 +51,8 @@ namespace QuanLyNhanSu_WPF.Models
         public EmployeeStatus Status { get; set; } = EmployeeStatus.Active;
         public EmploymentType EmploymentType { get; set; } = EmploymentType.Permanent;
      
-        public int ExperienceDays { get; set; }
+        [Column("ExperienceDays")]
+        public int ExperienceMonths { get; set; }
         
         public string Degree { get; set; }
 

@@ -27,6 +27,7 @@ namespace QuanLyNhanSu_WPF.Helpers
                 "LeaveApproval" => new LeaveRequestViewModel(), // Reuses same VM
                 "SalaryManagement" => new SalaryViewModel(),
                 "MySalary" => new SalaryViewModel(),
+                "EmailCenter" => new EmailCenterViewModel(),
                 _ => throw new ArgumentException($"Unknown view key: {viewKey}")
             };
         }

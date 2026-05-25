@@ -48,10 +48,12 @@
                                   ItemsSource="{Binding GenderOptions}" SelectedItem="{Binding Employee.Gender}" Margin="0,0,0,16"/>
 
                         <DatePicker materialDesign:HintAssist.Hint="Ngày sinh" Style="{StaticResource MaterialDesignFloatingHintDatePicker}"
-                                    SelectedDate="{Binding Employee.DateOfBirth}" Margin="0,0,0,16"/>
+                                    SelectedDate="{Binding DateOfBirth, Mode=TwoWay, UpdateSourceTrigger=LostFocus}" 
+                                    SelectedDateFormat="Short" Margin="0,0,0,16"/>
 
                         <DatePicker materialDesign:HintAssist.Hint="Ngày vào" Style="{StaticResource MaterialDesignFloatingHintDatePicker}"
-                                    SelectedDate="{Binding Employee.HireDate}" Margin="0,0,0,16"/>
+                                    SelectedDate="{Binding HireDate, Mode=TwoWay, UpdateSourceTrigger=LostFocus}" 
+                                    SelectedDateFormat="Short" Margin="0,0,0,16"/>
 
                         <TextBox materialDesign:HintAssist.Hint="Bằng cấp" Style="{StaticResource MaterialDesignFloatingHintTextBox}"
                                  Text="{Binding Employee.Degree, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,16"/>
@@ -83,8 +85,8 @@
                             </ComboBox.ItemTemplate>
                         </ComboBox>
 
-                        <TextBox materialDesign:HintAssist.Hint="Kinh nghiệm (số ngày)" Style="{StaticResource MaterialDesignFloatingHintTextBox}"
-                                 Text="{Binding Employee.ExperienceDays, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,16"/>
+                        <TextBox materialDesign:HintAssist.Hint="Kinh nghiệm (số tháng)" Style="{StaticResource MaterialDesignFloatingHintTextBox}"
+                                 Text="{Binding Employee.ExperienceMonths, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,16"/>
 
                         <TextBox materialDesign:HintAssist.Hint="Tỷ lệ hoa hồng Sales (%)" Style="{StaticResource MaterialDesignFloatingHintTextBox}"
                                  Text="{Binding Employee.BaseCommissionRate, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,16"

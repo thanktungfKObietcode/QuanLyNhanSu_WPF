@@ -24,6 +24,7 @@ namespace QuanLyNhanSu_WPF.Data
         public DbSet<Attendance> Attendances { get; set; }
         public DbSet<LeaveRequest> LeaveRequests { get; set; }
         public DbSet<Salary> Salaries { get; set; }
+        public DbSet<EmailLog> EmailLogs { get; set; }
         public DbSet<AuditLog> AuditLogs { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)

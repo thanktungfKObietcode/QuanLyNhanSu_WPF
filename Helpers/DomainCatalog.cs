@@ -10,10 +10,10 @@ namespace QuanLyNhanSu_WPF.Helpers
         public const string Absent = "Vắng mặt";
         public const string OnLeave = "Nghỉ phép";
 
-        public static readonly string[] PresentAliases = { Present, "CÃ³ máº·t", "Present" };
-        public static readonly string[] LateAliases = { Late, "Äi muá»™n", "Late" };
-        public static readonly string[] AbsentAliases = { Absent, "Váº¯ng máº·t", "Absent" };
-        public static readonly string[] OnLeaveAliases = { OnLeave, "Nghá»‰ phÃ©p", "OnLeave" };
+        public static readonly string[] PresentAliases = { Present, "Có mặt", "Present" };
+        public static readonly string[] LateAliases = { Late, "Đi muộn", "Late" };
+        public static readonly string[] AbsentAliases = { Absent, "Vắng mặt", "Absent" };
+        public static readonly string[] OnLeaveAliases = { OnLeave, "Nghỉ phép", "OnLeave" };
 
         public static IReadOnlyList<string> AllDisplayValues { get; } = new[]
         {

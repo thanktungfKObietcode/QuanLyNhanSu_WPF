@@ -6,6 +6,7 @@
     <UserControl.Resources>
         <helpers:BoolToVisibilityConverter x:Key="BoolToVis"/>
         <helpers:InverseBoolToVisibilityConverter x:Key="InvBoolToVis"/>
+        <helpers:FirstNotNullConverter x:Key="FirstNotNull"/>
     </UserControl.Resources>
 
     <Grid Margin="16">
@@ -62,17 +63,19 @@
                         <Grid>
                             <DataGrid ItemsSource="{Binding MonthlySalarySummaries}" SelectedItem="{Binding SelectedMonthlySalarySummary}" AutoGenerateColumns="False" IsReadOnly="True">
                                 <DataGrid.Columns>
-                                    <DataGridTextColumn Header="Nhan vien" Binding="{Binding EmployeeName}" Width="180"/>
-                                    <DataGridTextColumn Header="Ma NV" Binding="{Binding EmployeeCode}" Width="90"/>
-                                    <DataGridTextColumn Header="Phong ban" Binding="{Binding DepartmentName}" Width="140"/>
-                                    <DataGridTextColumn Header="Tong cong" Binding="{Binding TotalWorkUnits, StringFormat={}{0:N2}}" Width="90"/>
-                                    <DataGridTextColumn Header="Tong gio lam" Binding="{Binding TotalWorkingHours, StringFormat={}{0:N2}}" Width="100"/>
-                                    <DataGridTextColumn Header="Tong OT" Binding="{Binding TotalOvertimeHours, StringFormat={}{0:N1}}" Width="90"/>
-                                    <DataGridTextColumn Header="Luong theo ngay" Binding="{Binding DailySalaryTotal, StringFormat={}{0:N0} d}" Width="130"/>
-                                    <DataGridTextColumn Header="Luong OT" Binding="{Binding OvertimeSalaryTotal, StringFormat={}{0:N0} d}" Width="110"/>
-                                    <DataGridTextColumn Header="Phu cap" Binding="{Binding FixedAllowances, StringFormat={}{0:N0} d}" Width="110"/>
-                                    <DataGridTextColumn Header="Tong tam tinh" Binding="{Binding ProjectedNetSalary, StringFormat={}{0:N0} d}" Width="130"/>
-                                    <DataGridTextColumn Header="Luong da chot" Binding="{Binding OfficialNetSalary, StringFormat={}{0:N0} d}" Width="130"/>
+                                    <DataGridTextColumn Header="Nhan vien" Binding="{Binding EmployeeName}" Width="140"/>
+                                    <DataGridTextColumn Header="Ma NV" Binding="{Binding EmployeeCode}" Width="70"/>
+                                    <DataGridTextColumn Header="Phong ban" Binding="{Binding DepartmentName}" Width="110"/>
+                                    <DataGridTextColumn Header="Tong cong" Binding="{Binding TotalWorkUnits, StringFormat={}{0:N2}}" Width="80"/>
+                                    <DataGridTextColumn Header="Luong ngay" Binding="{Binding DailySalaryTotal, StringFormat={}{0:N0} d}" Width="100"/>
+                                    <DataGridTextColumn Header="Luong OT" Binding="{Binding OvertimeSalaryTotal, StringFormat={}{0:N0} d}" Width="100"/>
+                                    <DataGridTextColumn Header="KPI" Binding="{Binding KPIBonus, StringFormat={}{0:N0} d}" Width="90"/>
+                                    <DataGridTextColumn Header="Hoa hong" Binding="{Binding Commission, StringFormat={}{0:N0} d}" Width="90"/>
+                                    <DataGridTextColumn Header="Bonus" Binding="{Binding Bonus, StringFormat={}{0:N0} d}" Width="90"/>
+                                    <DataGridTextColumn Header="Phu cap" Binding="{Binding FixedAllowances, StringFormat={}{0:N0} d}" Width="100"/>
+                                    <DataGridTextColumn Header="Khau tru" Binding="{Binding Deductions, StringFormat={}{0:N0} d}" Width="90"/>
+                                    <DataGridTextColumn Header="Tam tinh" Binding="{Binding ProjectedNetSalary, StringFormat={}{0:N0} d}" Width="110"/>
+                                    <DataGridTextColumn Header="Da chot" Binding="{Binding OfficialNetSalary, StringFormat={}{0:N0} d}" Width="110"/>
                                 </DataGrid.Columns>
                             </DataGrid>
                             <ProgressBar IsIndeterminate="True" Visibility="{Binding IsLoading, Converter={StaticResource BoolToVis}}" VerticalAlignment="Top"/>
@@ -135,51 +138,133 @@
                                             </Style.Triggers>
                                         </Style>
                                     </StackPanel.Style>
+
                                     <DockPanel Margin="0,0,0,8">
-                                        <TextBlock Text="Nhan vien"/>
-                                        <TextBlock Text="{Binding SelectedSalary.Employee.Name, TargetNullValue='--'}" FontWeight="Bold" DockPanel.Dock="Right"/>
+                                        <TextBlock Text="Chi Tiết Lương Tháng" FontWeight="Bold" FontSize="14"/>
+                                        <Button Content="XUẤT PHIẾU LƯƠNG" Command="{Binding ExportPayslipCommand}" DockPanel.Dock="Right" Style="{StaticResource MaterialDesignRaisedButton}" Background="#3F51B5"/>
                                     </DockPanel>
-                                    <DockPanel Margin="0,0,0,8">
-                                        <TextBlock Text="Ky luong"/>
-                                        <TextBlock DockPanel.Dock="Right" FontWeight="Bold">
+
+                                    <Grid Margin="0,8">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+
+                                        <StackPanel Grid.Column="0">
+                                            <TextBlock Text="Nhân viên" Opacity="0.7"/>
+                                            <TextBlock Text="{Binding SelectedSalary.Employee.Name, TargetNullValue='--'}" FontWeight="Bold" Margin="0,0,0,8"/>
+
+                                            <TextBlock Text="Kỳ lương" Opacity="0.7"/>
+                                            <TextBlock>
+                                                <TextBlock.Text>
+                                                    <Binding Path="SelectedSalaryPeriod"/>
+                                                </TextBlock.Text>
+                                            </TextBlock>
+                                        </StackPanel>
+
+                                        <StackPanel Grid.Column="1">
+                                            <TextBlock Text="Thực lĩnh" Opacity="0.7"/>
+                                            <TextBlock FontWeight="Bold" Margin="0,0,0,8">
+                                                <TextBlock.Text>
+                                                    <MultiBinding Converter="{StaticResource FirstNotNull}" StringFormat="{}{0:N0} d">
+                                                        <Binding Path="SelectedSalary.NetSalary"/>
+                                                        <Binding Path="SelectedMonthlySalarySummary.ProjectedNetSalary"/>
+                                                    </MultiBinding>
+                                                </TextBlock.Text>
+                                            </TextBlock>
+                                        </StackPanel>
+                                    </Grid>
+
+                                    <Separator Margin="0,8"/>
+
+                                    <Grid>
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                        </Grid.RowDefinitions>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="2*"/>
+                                            <ColumnDefinition Width="3*"/>
+                                        </Grid.ColumnDefinitions>
+
+                                        <TextBlock Grid.Row="0" Grid.Column="0" Text="Lương cơ bản"/>
+                                        <TextBlock Grid.Row="0" Grid.Column="1" HorizontalAlignment="Right">
                                             <TextBlock.Text>
-                                                <MultiBinding StringFormat="{}Thang {0}/{1}">
-                                                    <Binding Path="SelectedSalary.Month" TargetNullValue="--"/>
-                                                    <Binding Path="SelectedSalary.Year" TargetNullValue="--"/>
+                                                <MultiBinding Converter="{StaticResource FirstNotNull}" StringFormat="{}{0:N0} d">
+                                                    <Binding Path="SelectedSalary.BaseSalary"/>
+                                                    <Binding Path="SelectedMonthlySalarySummary.OfficialBaseSalary"/>
                                                 </MultiBinding>
                                             </TextBlock.Text>
                                         </TextBlock>
-                                    </DockPanel>
-                                    <Separator Margin="0,8"/>
-                                    <DockPanel Margin="0,4">
-                                        <TextBlock Text="Luong co ban"/>
-                                        <TextBlock Text="{Binding SelectedSalary.BaseSalary, StringFormat={}{0:N0} d, TargetNullValue='--'}" DockPanel.Dock="Right"/>
-                                    </DockPanel>
-                                    <DockPanel Margin="0,4">
-                                        <TextBlock Text="Phu cap"/>
-                                        <TextBlock Text="{Binding SelectedSalary.Allowances, StringFormat={}{0:N0} d, TargetNullValue='--'}" DockPanel.Dock="Right"/>
-                                    </DockPanel>
-                                    <DockPanel Margin="0,4">
-                                        <TextBlock Text="KPI"/>
-                                        <TextBlock Text="{Binding SelectedSalary.KPIBonus, StringFormat={}{0:N0} d, TargetNullValue='--'}" DockPanel.Dock="Right"/>
-                                    </DockPanel>
-                                    <DockPanel Margin="0,4">
-                                        <TextBlock Text="Hoa hong"/>
-                                        <TextBlock Text="{Binding SelectedSalary.Commission, StringFormat={}{0:N0} d, TargetNullValue='--'}" DockPanel.Dock="Right"/>
-                                    </DockPanel>
-                                    <DockPanel Margin="0,4">
-                                        <TextBlock Text="Luong OT"/>
-                                        <TextBlock Text="{Binding SelectedSalary.OTSalary, StringFormat={}{0:N0} d, TargetNullValue='--'}" DockPanel.Dock="Right"/>
-                                    </DockPanel>
-                                    <DockPanel Margin="0,4">
-                                        <TextBlock Text="Khau tru"/>
-                                        <TextBlock Text="{Binding SelectedSalary.Deductions, StringFormat={}{0:N0} d, TargetNullValue='--'}" DockPanel.Dock="Right"/>
-                                    </DockPanel>
+
+                                        <TextBlock Grid.Row="1" Grid.Column="0" Text="Phụ cấp"/>
+                                        <TextBlock Grid.Row="1" Grid.Column="1" HorizontalAlignment="Right">
+                                            <TextBlock.Text>
+                                                <MultiBinding Converter="{StaticResource FirstNotNull}" StringFormat="{}{0:N0} d">
+                                                    <Binding Path="SelectedSalary.Allowances"/>
+                                                    <Binding Path="SelectedMonthlySalarySummary.FixedAllowances"/>
+                                                </MultiBinding>
+                                            </TextBlock.Text>
+                                        </TextBlock>
+
+                                        <TextBlock Grid.Row="2" Grid.Column="0" Text="KPI"/>
+                                        <TextBlock Grid.Row="2" Grid.Column="1" HorizontalAlignment="Right">
+                                            <TextBlock.Text>
+                                                <MultiBinding Converter="{StaticResource FirstNotNull}" StringFormat="{}{0:N0} d">
+                                                    <Binding Path="SelectedSalary.KPIBonus"/>
+                                                    <Binding Path="SelectedMonthlySalarySummary.KPIBonus"/>
+                                                </MultiBinding>
+                                            </TextBlock.Text>
+                                        </TextBlock>
+
+                                        <TextBlock Grid.Row="3" Grid.Column="0" Text="Hoa hồng"/>
+                                        <TextBlock Grid.Row="3" Grid.Column="1" HorizontalAlignment="Right">
+                                            <TextBlock.Text>
+                                                <MultiBinding Converter="{StaticResource FirstNotNull}" StringFormat="{}{0:N0} d">
+                                                    <Binding Path="SelectedSalary.Commission"/>
+                                                    <Binding Path="SelectedMonthlySalarySummary.Commission"/>
+                                                </MultiBinding>
+                                            </TextBlock.Text>
+                                        </TextBlock>
+
+                                        <TextBlock Grid.Row="4" Grid.Column="0" Text="OT"/>
+                                        <TextBlock Grid.Row="4" Grid.Column="1" HorizontalAlignment="Right">
+                                            <TextBlock.Text>
+                                                <MultiBinding Converter="{StaticResource FirstNotNull}" StringFormat="{}{0:N0} d">
+                                                    <Binding Path="SelectedSalary.OTSalary"/>
+                                                    <Binding Path="SelectedMonthlySalarySummary.OvertimeSalaryTotal"/>
+                                                </MultiBinding>
+                                            </TextBlock.Text>
+                                        </TextBlock>
+
+                                        <TextBlock Grid.Row="5" Grid.Column="0" Text="Khấu trừ"/>
+                                        <TextBlock Grid.Row="5" Grid.Column="1" HorizontalAlignment="Right">
+                                            <TextBlock.Text>
+                                                <MultiBinding Converter="{StaticResource FirstNotNull}" StringFormat="{}{0:N0} d">
+                                                    <Binding Path="SelectedSalary.Deductions"/>
+                                                    <Binding Path="SelectedMonthlySalarySummary.Deductions"/>
+                                                </MultiBinding>
+                                            </TextBlock.Text>
+                                        </TextBlock>
+                                    </Grid>
+
                                     <Separator Margin="0,12"/>
+
                                     <materialDesign:Card Background="{DynamicResource PrimaryHueDarkBrush}" Padding="12">
                                         <DockPanel>
-                                            <TextBlock Text="Thuc linh" Foreground="White" FontWeight="Bold"/>
-                                            <TextBlock Text="{Binding SelectedSalary.NetSalary, StringFormat={}{0:N0} d, TargetNullValue='--'}" Foreground="White" FontWeight="Bold" DockPanel.Dock="Right"/>
+                                            <TextBlock Text="Thực lĩnh" Foreground="White" FontWeight="Bold"/>
+                                            <TextBlock Foreground="White" FontWeight="Bold" DockPanel.Dock="Right">
+                                                <TextBlock.Text>
+                                                    <MultiBinding Converter="{StaticResource FirstNotNull}" StringFormat="{}{0:N0} d">
+                                                        <Binding Path="SelectedSalary.NetSalary"/>
+                                                        <Binding Path="SelectedMonthlySalarySummary.ProjectedNetSalary"/>
+                                                    </MultiBinding>
+                                                </TextBlock.Text>
+                                            </TextBlock>
                                         </DockPanel>
                                     </materialDesign:Card>
                                 </StackPanel>

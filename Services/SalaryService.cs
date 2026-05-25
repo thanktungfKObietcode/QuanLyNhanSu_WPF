@@ -38,16 +38,27 @@ namespace QuanLyNhanSu_WPF.Services
             var to = from.AddMonths(1).AddDays(-1);
             var records = (await _attendanceRepo.GetByEmployeeAsync(employee.EmployeeID, from, to)).ToList();
 
-            var workingDays = records.Sum(a => (decimal)AttendanceCalculations.CalculateDailyWorkUnits(a.Status, a.CheckIn, a.CheckOut));
-
-            if (otHours == 0)
-                otHours = (decimal)records.Sum(a => a.OvertimeHours);
-
-            var hourlyRate = adjustedBase / StandardWorkDays / 8;
-            var otSalary = otHours * hourlyRate * 1.5m;
-            var commission = salesRevenue * (decimal)(employee.BaseCommissionRate / 100.0);
+            // Compute per-record amounts (base + overtime) to avoid rounding differences
             var dailyRate = adjustedBase / StandardWorkDays;
-            var netSalary = (dailyRate * workingDays) + kpiBonus + (allowances + FixedAllowances) + otSalary + commission - deductions;
+            var hourlyRate = dailyRate / 8m;
+
+            decimal baseSum = 0m;
+            decimal overtimeSum = 0m;
+            foreach (var rec in records)
+            {
+                var workUnits = (decimal)AttendanceCalculations.CalculateDailyWorkUnits(rec.Status, rec.CheckIn, rec.CheckOut);
+                var workingHours = (decimal)AttendanceCalculations.CalculateWorkingHours(rec.CheckIn, rec.CheckOut);
+                var baseAmount = dailyRate * workUnits;
+                var otAmount = hourlyRate * (decimal)rec.OvertimeHours * 1.5m;
+
+                baseSum += baseAmount;
+                overtimeSum += otAmount;
+            }
+
+            // if explicit otHours passed, use it to compute OT salary; otherwise use overtimeSum from records
+            var otSalary = otHours > 0 ? otHours * hourlyRate * 1.5m : overtimeSum;
+            var commission = salesRevenue * (decimal)(employee.BaseCommissionRate / 100.0);
+            var netSalary = baseSum + kpiBonus + (allowances + FixedAllowances) + otSalary + commission - deductions;
 
             var salary = new Salary
             {
@@ -152,7 +163,14 @@ namespace QuanLyNhanSu_WPF.Services
                     DailySalaryTotal = rows.Sum(r => r.BaseAmount),
                     OvertimeSalaryTotal = rows.Sum(r => r.OvertimeAmount),
                     FixedAllowances = FixedAllowances,
-                    ProjectedNetSalary = rows.Sum(r => r.TotalAmount) + FixedAllowances,
+                    // Use official salary values if available, otherwise use 0 for projected
+                    KPIBonus = official?.KPIBonus ?? 0,
+                    Commission = official?.Commission ?? 0,
+                    Bonus = official?.Bonus ?? 0,
+                    Deductions = official?.Deductions ?? 0,
+                    // ProjectedNetSalary: calculated from daily entries (attendance data)
+                    ProjectedNetSalary = rows.Sum(r => r.TotalAmount) + FixedAllowances + (official?.KPIBonus ?? 0) + (official?.Commission ?? 0) + (official?.Bonus ?? 0) - (official?.Deductions ?? 0),
+                    // OfficialNetSalary: from official salary record (after "chốt lương")
                     OfficialNetSalary = official?.NetSalary,
                     OfficialBaseSalary = official?.BaseSalary
                 };
@@ -218,9 +236,9 @@ namespace QuanLyNhanSu_WPF.Services
         private decimal GetAdjustedBaseSalary(Employee employee, int month, int year)
         {
             var payrollPeriodEnd = new DateTime(year, month, DateTime.DaysInMonth(year, month));
-            var tenureDays = Math.Max(0, (payrollPeriodEnd - employee.HireDate.Date).Days);
-            var totalExpDays = employee.ExperienceDays + tenureDays;
-            var yearsExp = totalExpDays / 365.0;
+            var tenureMonths = Math.Max(0, (payrollPeriodEnd.Year - employee.HireDate.Year) * 12 + payrollPeriodEnd.Month - employee.HireDate.Month);
+            var totalExpMonths = employee.ExperienceMonths + tenureMonths;
+            var yearsExp = totalExpMonths / 12.0;
             var posName = employee.Position?.PosName?.ToLowerInvariant() ?? string.Empty;
 
             decimal baseSalary;

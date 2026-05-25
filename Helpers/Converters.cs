@@ -139,4 +139,29 @@ namespace QuanLyNhanSu_WPF.Helpers
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) => throw new NotImplementedException();
     }
+
+    // Returns the first non-null/non-empty value from the bindings
+    public class FirstNotNullConverter : IMultiValueConverter
+    {
+        public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
+        {
+            foreach (var v in values)
+            {
+                if (v == null) continue;
+                if (v is string s)
+                {
+                    if (!string.IsNullOrWhiteSpace(s)) return s;
+                    continue;
+                }
+                return v;
+            }
+
+            return null;
+        }
+
+        public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture)
+        {
+            throw new NotImplementedException();
+        }
+    }
 }

@@ -19,6 +19,8 @@ namespace QuanLyNhanSu_WPF.ViewModels
         private bool _isEditMode;
         private bool _isSaving;
         private string _errorMessage;
+        private DateTime? _dateOfBirth;
+        private DateTime? _hireDate;
         private ObservableCollection<Department> _departments = new();
         private ObservableCollection<Position> _positions = new();
 
@@ -30,6 +32,44 @@ namespace QuanLyNhanSu_WPF.ViewModels
                 if (SetProperty(ref _employee, value))
                 {
                     OnPropertyChanged(nameof(IsSalesPosition));
+                    // Sync DateTime properties from Employee
+                    if (value != null)
+                    {
+                        _dateOfBirth = value.DateOfBirth;
+                        _hireDate = value.HireDate;
+                        OnPropertyChanged(nameof(DateOfBirth));
+                        OnPropertyChanged(nameof(HireDate));
+                    }
+                }
+            }
+        }
+
+        public DateTime? DateOfBirth
+        {
+            get => _dateOfBirth;
+            set
+            {
+                if (SetProperty(ref _dateOfBirth, value))
+                {
+                    if (_employee != null && value.HasValue)
+                    {
+                        _employee.DateOfBirth = value.Value;
+                    }
+                }
+            }
+        }
+
+        public DateTime? HireDate
+        {
+            get => _hireDate;
+            set
+            {
+                if (SetProperty(ref _hireDate, value))
+                {
+                    if (_employee != null && value.HasValue)
+                    {
+                        _employee.HireDate = value.Value;
+                    }
                 }
             }
         }
@@ -68,7 +108,11 @@ namespace QuanLyNhanSu_WPF.ViewModels
         public EmployeeFormViewModel(Employee employee = null)
         {
             IsEditMode = employee != null && employee.EmployeeID > 0;
-            Employee = employee ?? new Employee { HireDate = DateTime.Today, Status = EmployeeStatus.Active };
+            Employee = employee ?? new Employee { 
+                HireDate = DateTime.Today, 
+                Status = EmployeeStatus.Active,
+                DateOfBirth = new DateTime(2000, 1, 1)
+            };
 
             SaveCommand = new RelayCommand(async _ => await SaveAsync(), _ => !IsSaving);
             CancelCommand = new RelayCommand(_ => Closed?.Invoke(false));
@@ -108,6 +152,16 @@ namespace QuanLyNhanSu_WPF.ViewModels
 
             try
             {
+                // Ensure Employee has the latest values from DatePicker properties
+                if (_dateOfBirth.HasValue)
+                {
+                    Employee.DateOfBirth = _dateOfBirth.Value;
+                }
+                if (_hireDate.HasValue)
+                {
+                    Employee.HireDate = _hireDate.Value;
+                }
+
                 (bool success, string error) result;
                 var service = CreateEmployeeService();
                 if (IsEditMode)

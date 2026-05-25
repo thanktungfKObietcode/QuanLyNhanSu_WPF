@@ -34,18 +34,21 @@ namespace QuanLyNhanSu_WPF.ViewModels
         public int EmployeesOnLeave { get => _employeesOnLeave; set => SetProperty(ref _employeesOnLeave, value); }
         public double MonthlyAttendanceRate { get => _monthlyAttendanceRate; set => SetProperty(ref _monthlyAttendanceRate, value); }
         public bool IsLoading { get => _isLoading; set => SetProperty(ref _isLoading, value); }
+
         public Func<double, string> YFormatter { get; set; } = value => value.ToString("N0") + " ₫";
+
         public string[] AttendanceTrendLabels { get => _attendanceTrendLabels; set => SetProperty(ref _attendanceTrendLabels, value); }
         public string[] LeaveStatusLabels { get => _leaveStatusLabels; set => SetProperty(ref _leaveStatusLabels, value); }
         public DateTime LastUpdated { get => _lastUpdated; set => SetProperty(ref _lastUpdated, value); }
 
-        public ObservableCollection<AuditLog> RecentActivities { get; } = new();
-        public ObservableCollection<Employee> UpcomingBirthdays { get; } = new();
-        public ObservableCollection<Employee> UpcomingAnniversaries { get; } = new();
-        public SeriesCollection AttendanceTrendSeries { get; } = new();
-        public SeriesCollection DepartmentDistributionSeries { get; } = new();
-        public SeriesCollection BudgetDistributionSeries { get; } = new();
-        public SeriesCollection LeaveStatusSeries { get; } = new();
+        public ObservableCollection<AuditLog> RecentActivities { get; set; } = new();
+        public ObservableCollection<Employee> UpcomingBirthdays { get; set; } = new();
+        public ObservableCollection<Employee> UpcomingAnniversaries { get; set; } = new();
+
+        public SeriesCollection AttendanceTrendSeries { get; set; } = new();
+        public SeriesCollection DepartmentDistributionSeries { get; set; } = new();
+        public SeriesCollection BudgetDistributionSeries { get; set; } = new();
+        public SeriesCollection LeaveStatusSeries { get; set; } = new();
 
         public ICommand RefreshCommand { get; }
 
@@ -54,27 +57,38 @@ namespace QuanLyNhanSu_WPF.ViewModels
         public event Action NavigateToLeaves;
         public event Action NavigateToAttendance;
 
+        private bool _isBusy;
+
         public AdminDashboardViewModel()
         {
             RefreshCommand = new RelayCommand(async _ => await LoadStatistics());
+
             AttendanceTrendLabels = Array.Empty<string>();
             LeaveStatusLabels = Array.Empty<string>();
 
             _autoRefreshTimer = new System.Timers.Timer(5 * 60 * 1000);
-            _autoRefreshTimer.Elapsed += async (_, _) => await LoadStatistics();
             _autoRefreshTimer.AutoReset = true;
+
+            _autoRefreshTimer.Elapsed += async (_, _) =>
+            {
+                await LoadStatistics();
+            };
+
             _autoRefreshTimer.Start();
 
-            Task.Run(LoadStatistics);
+            _ = LoadStatistics(); 
         }
 
         public async Task LoadStatistics()
         {
-            IsLoading = true;
-            LastUpdated = DateTime.Now;
+            if (_isBusy) return;
+            _isBusy = true;
 
             try
             {
+                IsLoading = true;
+                LastUpdated = DateTime.Now;
+
                 var options = DbContextFactory.CreateOptions();
                 await using var db = new ApplicationDbContext(options);
 
@@ -83,6 +97,7 @@ namespace QuanLyNhanSu_WPF.ViewModels
                 var leaveRepo = new LeaveRequestRepository(db);
                 var today = DateTime.Today;
 
+                // ===== BASIC STATS =====
                 TotalEmployees = await empRepo.GetActiveCountAsync();
                 TotalDepartments = await db.Departments.CountAsync();
                 PendingLeaveRequests = await leaveRepo.GetPendingCountAsync();
@@ -90,81 +105,85 @@ namespace QuanLyNhanSu_WPF.ViewModels
                 EmployeesOnLeave = await attRepo.GetOnLeaveCountAsync();
                 MonthlyAttendanceRate = await attRepo.GetMonthlyAttendanceRateAsync(today.Month, today.Year);
 
+                // ===== LIST DATA =====
                 var logs = await db.AuditLogs
                     .OrderByDescending(l => l.Timestamp)
                     .Take(10)
                     .ToListAsync();
 
                 var birthdays = await empRepo.GetBirthdaysThisMonthAsync();
+
                 var anniversaries = await db.Employees
                     .Where(e => e.Status == EmployeeStatus.Active && e.HireDate.Month == today.Month)
                     .OrderBy(e => e.HireDate.Day)
                     .ToListAsync();
 
+                // ===== ATTENDANCE CHART =====
                 var last7 = (await attRepo.GetLast7DaysAllAsync()).ToList();
+
                 var labels = new string[7];
                 var presentCounts = new int[7];
-                for (var i = 0; i < 7; i++)
+
+                for (int i = 0; i < 7; i++)
                 {
                     var day = today.AddDays(-(6 - i));
                     labels[i] = day.ToString("ddd dd/MM");
-                    presentCounts[i] = last7.Count(a => a.Date.Date == day.Date && AttendanceStatuses.IsPresentOrLate(a.Status));
+                    presentCounts[i] = last7.Count(a =>
+                        a.Date.Date == day.Date &&
+                        AttendanceStatuses.IsPresentOrLate(a.Status));
                 }
+
+                // ===== DEPARTMENTS =====
+                var departments = await db.Departments.ToListAsync();
+
+                var departmentHeadcounts = departments
+                    .Select(d => new
+                    {
+                        d.DeptName,
+                        Count = db.Employees.Count(e =>
+                            e.DepartmentID == d.DepartmentID &&
+                            e.Status == EmployeeStatus.Active)
+                    })
+                    .ToList();
 
                 var salaries = await db.Salaries
                     .Include(s => s.Employee)
                     .Where(s => s.Month == today.Month && s.Year == today.Year)
                     .ToListAsync();
 
-                var departments = await db.Departments
-                    .Include(d => d.Manager)
-                    .ToListAsync();
-
-                var departmentHeadcounts = departments
-                    .Select(dept => new
-                    {
-                        DeptName = dept.DeptName,
-                        Count = db.Employees.Count(e => e.DepartmentID == dept.DepartmentID && e.Status == EmployeeStatus.Active)
-                    })
-                    .Where(x => x.Count > 0)
-                    .ToList();
-
                 var departmentBudgets = departments
-                    .Select(dept => new
+                    .Select(d => new
                     {
-                        DeptName = dept.DeptName,
+                        d.DeptName,
                         TotalBudget = salaries
-                            .Where(s => s.Employee != null && s.Employee.DepartmentID == dept.DepartmentID)
+                            .Where(s => s.Employee?.DepartmentID == d.DepartmentID)
                             .Sum(s => s.NetSalary)
                     })
-                    .Where(x => x.TotalBudget > 0)
                     .ToList();
 
+                // ===== LEAVE =====
                 var approved = await db.LeaveRequests.CountAsync(l => l.Status == LeaveStatus.Approved);
                 var pending = await db.LeaveRequests.CountAsync(l => l.Status == LeaveStatus.Pending);
                 var rejected = await db.LeaveRequests.CountAsync(l => l.Status == LeaveStatus.Rejected);
 
-                System.Windows.Application.Current?.Dispatcher.Invoke(() =>
+                // ===== UI UPDATE SAFE =====
+                System.Windows.Application.Current.Dispatcher.Invoke(() =>
                 {
+                    // Update collections in-place so bindings update correctly
                     RecentActivities.Clear();
                     foreach (var log in logs)
-                    {
                         RecentActivities.Add(log);
-                    }
 
                     UpcomingBirthdays.Clear();
                     foreach (var emp in birthdays)
-                    {
                         UpcomingBirthdays.Add(emp);
-                    }
 
                     UpcomingAnniversaries.Clear();
                     foreach (var emp in anniversaries)
-                    {
                         UpcomingAnniversaries.Add(emp);
-                    }
 
                     AttendanceTrendLabels = labels;
+
                     AttendanceTrendSeries.Clear();
                     AttendanceTrendSeries.Add(new LineSeries
                     {
@@ -175,16 +194,16 @@ namespace QuanLyNhanSu_WPF.ViewModels
                     });
 
                     DepartmentDistributionSeries.Clear();
-                    foreach (var dept in departmentHeadcounts)
+                    foreach (var d in departmentHeadcounts)
                     {
                         DepartmentDistributionSeries.Add(new PieSeries
                         {
-                            Title = dept.DeptName ?? "Khác",
-                            Values = new ChartValues<int> { dept.Count }
+                            Title = d.DeptName ?? "Khác",
+                            Values = new ChartValues<int> { d.Count }
                         });
                     }
 
-                    if (!DepartmentDistributionSeries.Any())
+                    if (DepartmentDistributionSeries.Count == 0)
                     {
                         DepartmentDistributionSeries.Add(new PieSeries
                         {
@@ -194,18 +213,18 @@ namespace QuanLyNhanSu_WPF.ViewModels
                     }
 
                     BudgetDistributionSeries.Clear();
-                    foreach (var dept in departmentBudgets)
+                    foreach (var d in departmentBudgets)
                     {
                         BudgetDistributionSeries.Add(new ColumnSeries
                         {
-                            Title = dept.DeptName,
-                            Values = new ChartValues<decimal> { dept.TotalBudget },
+                            Title = d.DeptName,
+                            Values = new ChartValues<decimal> { d.TotalBudget },
                             DataLabels = true
                         });
                     }
 
                     LeaveStatusLabels = new[] { "Đã duyệt", "Chờ duyệt", "Từ chối" };
-                   
+
                     LeaveStatusSeries.Clear();
                     LeaveStatusSeries.Add(new ColumnSeries { Title = "Đã duyệt", Values = new ChartValues<int> { approved } });
                     LeaveStatusSeries.Add(new ColumnSeries { Title = "Chờ duyệt", Values = new ChartValues<int> { pending } });
@@ -214,11 +233,12 @@ namespace QuanLyNhanSu_WPF.ViewModels
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"AdminDashboard LoadStatistics error: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"LoadStatistics error: {ex}");
             }
             finally
             {
                 IsLoading = false;
+                _isBusy = false;
             }
         }
 

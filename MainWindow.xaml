@@ -34,6 +34,9 @@
         <DataTemplate DataType="{x:Type vm:SalaryViewModel}">
             <views:SalaryView/>
         </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:EmailCenterViewModel}">
+            <views:EmailCenterView/>
+        </DataTemplate>
 
         <Style x:Key="SidebarItemStyle" TargetType="ListBoxItem" BasedOn="{StaticResource MaterialDesignListBoxItem}">
             <Setter Property="Padding" Value="16,14"/>
